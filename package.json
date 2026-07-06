@@ -3,7 +3,9 @@
   "version": "1.1.1",
   "description": "🤖 Reasonix 飞书 Bot — 一键部署套件，在任何 Linux 机器上快速部署 AI Bot 接入飞书",
   "type": "module",
-  "private": true,
+  "bin": {
+    "reasonix-feishu-deploy": "./scripts/install.sh"
+  },
   "scripts": {
     "setup": "node scripts/setup.mjs",
     "uninstall": "node scripts/uninstall.mjs",
