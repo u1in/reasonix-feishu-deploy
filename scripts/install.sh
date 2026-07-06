@@ -93,6 +93,9 @@ cleanup() { rm -rf "$CLONE_DIR"; }
 trap cleanup EXIT
 ok "安装包已就绪"
 
+# ── 读取版本号 ──
+DEPLOY_VERSION="$(sed -n 's/.*"version": "\([^"]*\)".*/\1/p' "$PACKAGE_DIR/package.json" 2>/dev/null || echo '?')"
+
 SETUP_SCRIPT="$PACKAGE_DIR/scripts/setup.mjs"
 
 # ── Banner ──
@@ -100,6 +103,7 @@ echo ""
 echo -e "${GREEN}  ╭──────────────────────────────────────────────╮${NC}"
 echo -e "${GREEN}  │                                              │${NC}"
 echo -e "${GREEN}  │   🤖  Reasonix 飞书 Bot — 一键部署          │${NC}"
+echo -e "${GREEN}  │          v${DEPLOY_VERSION}                          │${NC}"
 echo -e "${GREEN}  │                                              │${NC}"
 echo -e "${GREEN}  ╰──────────────────────────────────────────────╯${NC}"
 echo ""
