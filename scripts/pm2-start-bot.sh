@@ -38,6 +38,14 @@ if pm2 info reasonix-bot &>/dev/null; then
     exit 0
 fi
 
+# ── 加载 API 密钥 ──
+ENV_FILE="$CONFIG_DIR/.env"
+if [ -f "$ENV_FILE" ]; then
+  set -a
+  source "$ENV_FILE"
+  set +a
+fi
+
 # ── 启动 ──
 info "启动 reasonix-bot (PM2)..."
 REASONIX_BIN="$(which reasonix)" pm2 start "$ECOSYSTEM"
