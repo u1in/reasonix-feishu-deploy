@@ -289,6 +289,46 @@ async function generateConfig(config, cli = {}) {
   writeFileSync(CONFIG_FILE, configContent, 'utf-8');
   console.log(`  ${green('✓')} 配置文件已生成: ~/.config/reasonix-bot/config.toml`);
 
+  // ── 同步 Bot 配置到 ~/.reasonix/config.toml（reasonix CLI 实际读取的用户级配置） ──
+  const REASONIX_CONFIG = `${HOME}/.reasonix/config.toml`;
+  if (existsSync(REASONIX_CONFIG)) {
+    let rcContent = readFileSync(REASONIX_CONFIG, 'utf-8');
+    const rcOrig = rcContent;
+
+    // 启用 bot 网关主开关
+    rcContent = rcContent.replace(
+      /(\[bot\]\s*\n(?:[^[]*\n)*)enabled\s*=\s*false/m,
+      '$1enabled = true',
+    );
+
+    // 启用 bot.feishu 并更新相关设置
+    rcContent = rcContent.replace(
+      /(\[bot\.feishu\]\s*\n(?:[^[]*\n)*?)enabled\s*=\s*false/m,
+      '$1enabled = true',
+    );
+    if (config.appId) {
+      rcContent = rcContent.replace(
+        /(\[bot\.feishu\]\s*\n(?:[^[]*\n)*?)app_id\s*=\s*""/m,
+        `$1app_id = "${config.appId}"`,
+      );
+    }
+    rcContent = rcContent.replace(/^mode\s*=\s*"webhook"/m, 'mode = "websocket"');
+    rcContent = rcContent.replace(/^require_mention\s*=\s*true/m, `require_mention = ${config.requireMention}`);
+
+    // 更新 bot.allowlist
+    rcContent = rcContent.replace(/^allow_all\s*=\s*false/m, `allow_all = ${config.allowAll}`);
+    rcContent = rcContent.replace(/^feishu_users\s*=\s*\[\]/m, `feishu_users = [${usersArray}]`);
+
+    if (rcContent !== rcOrig) {
+      writeFileSync(REASONIX_CONFIG, rcContent, 'utf-8');
+      console.log(`  ${green('✓')} Bot 配置已同步到 ~/.reasonix/config.toml`);
+    } else {
+      console.log(`  ${dim('─')} ~/.reasonix/config.toml 无需更新`);
+    }
+  } else {
+    console.log(`  ${yellow('⚠')} 未找到 ~/.reasonix/config.toml，请先安装 reasonix CLI`);
+  }
+
   // PM2 ecosystem
   const ecosystemFile = `${CONFIG_DIR}/ecosystem.config.js`;
   if (!existsSync(ecosystemFile)) {
