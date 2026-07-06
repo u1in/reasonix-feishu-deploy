@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [0.2.0](https://github.com/u1in/reasonix-feishu-deploy/compare/v0.1.8...v0.2.0) (2026-07-06)
+
+
+### 🚀 新功能
+
+* 支持卸载静默模式，重构 README，修复 setup --yes 确认提示阻塞 ([5e447b2](https://github.com/u1in/reasonix-feishu-deploy/commit/5e447b23e7c143964af238be67804b09fb5800b5))
+
 ## [0.1.8](https://github.com/u1in/reasonix-feishu-deploy/compare/v0.1.7...v0.1.8) (2026-07-06)
 
 
