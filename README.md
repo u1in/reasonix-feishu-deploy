@@ -29,9 +29,6 @@ npx @u1in/reasonix-feishu-deploy \
 | `--app-id <id>` | 飞书 App ID |
 | `--app-secret <secret>` | 飞书 App Secret |
 | `--api-key <key>` | DeepSeek API Key |
-| `--allow-all` / `--no-allow-all` | 白名单策略（默认允许所有人，安装后可在 config.toml 修改） |
-| `--require-mention` / `--no-require-mention` | 群聊是否需要 @Bot 回复（默认否，安装后可在 config.toml 修改） |
-| `--users <id1,id2,...>` | 指定允许的飞书用户 Open ID（需配合 `--no-allow-all` 使用） |
 | `--add-aliases` / `--no-add-aliases` | 添加 rb-* 快捷命令 |
 
 > 安装时如果检测到 `~/.reasonix/config.toml`（个人 Reasonix 配置），会自动备份并与其合并，保留你已有的 UI 主题、自定义 Provider、工具配置等非 Bot 设置。
@@ -80,14 +77,14 @@ pm2 stop reasonix-bot                                   # 停止
 pm2 restart reasonix-bot                                # 重启
 pm2 status                                              # 状态
 pm2 logs reasonix-bot                                   # 日志
-bash ~/.config/reasonix-bot/undeploy.sh                 # 卸载
+node ~/.config/reasonix-bot/undeploy.mjs                # 卸载
 ```
 
 ### 修改配置
 
 ```bash
 vim ~/.reasonix/config.toml                                    # 用户级配置（白名单、通道、模型等）
-vim ~/.config/reasonix-bot/ecosystem.config.js                 # API 密钥
+vim ~/.config/reasonix-bot/ecosystem.config.js                 # DeepSeek Key / 飞书 Secret
 # 改完后重启: rb-restart 或 pm2 restart reasonix-bot
 ```
 
@@ -118,15 +115,13 @@ vim ~/.config/reasonix-bot/ecosystem.config.js                 # API 密钥
 
 ```
 ~/.config/reasonix-bot/
-├── config.toml             项目配置（自动同步）
-├── ecosystem.config.js      PM2 配置（含 API 密钥）
+├── ecosystem.config.js      PM2 配置（含 DeepSeek Key / 飞书 Secret）
 ├── pm2-start-bot.sh         启动脚本
 ├── pm2-stop-bot.sh          停止脚本
-├── undeploy.sh             卸载脚本
-└── undeploy.mjs            卸载程序
+└── undeploy.mjs             卸载脚本
 
 ~/.reasonix/
-├── config.toml              用户级配置（含 Bot 设置，安装时与个人配置合并）
+├── config.toml              用户级 Reasonix 配置（含 Bot 设置，安装时与个人配置合并）
 └── config.toml.deploy-bak   安装前备份（卸载时可还原）
 ```
 

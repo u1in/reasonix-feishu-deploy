@@ -208,11 +208,9 @@ async function main() {
   title('配置文件');
 
   const configFiles = [
-    'config.toml',
     'ecosystem.config.js',
     'pm2-start-bot.sh',
     'pm2-stop-bot.sh',
-    'undeploy.sh',
     'undeploy.mjs',
   ];
 
