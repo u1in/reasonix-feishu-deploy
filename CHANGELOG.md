@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [0.4.6](https://github.com/u1in/reasonix-feishu-deploy/compare/v0.4.5...v0.4.6) (2026-07-06)
+
+
+### ♻️ 重构
+
+* split deploy into 10 steps, auto-clean undeploy directory, update README ([5db6424](https://github.com/u1in/reasonix-feishu-deploy/commit/5db64247ba9d54659fdbe4cb817840483d3e7d10))
+
 ## [0.4.5](https://github.com/u1in/reasonix-feishu-deploy/compare/v0.4.4...v0.4.5) (2026-07-06)
 
 
