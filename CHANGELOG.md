@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [0.1.8](https://github.com/u1in/reasonix-feishu-deploy/compare/v0.1.7...v0.1.8) (2026-07-06)
+
+
+### 🐛 修复
+
+* 默认关闭 memory_v5 执行编译器，会话间不共享上下文 ([9416402](https://github.com/u1in/reasonix-feishu-deploy/commit/941640212595429aa6d687e5d7bfba764c076f13))
+
 ## [0.1.7](https://github.com/u1in/reasonix-feishu-deploy/compare/v0.1.6...v0.1.7) (2026-07-06)
 
 
