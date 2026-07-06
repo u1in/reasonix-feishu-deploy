@@ -1,13 +1,15 @@
 # ═══════════════════════════════════════════════════════════════════════════
-# Reasonix 飞书 Bot 配置（最小化）
-# Bot 部署专用，只含必需设置。用户自有配置会在安装时从 ~/.reasonix/config.toml 合并。
+# Reasonix 飞书 Bot 部署配置
+# 安装时此文件会与 ~/.reasonix/config.toml（用户已有配置）合并。
+# 如果用户尚未初始化 Reasonix，此模板将成为完整的用户配置。
+# ─ 分辨率顺序: 命令行标志 > ./reasonix.toml > ~/.reasonix/config.toml > 内置默认值
 # ═══════════════════════════════════════════════════════════════════════════
 
 config_version = 3
-default_model = "deepseek-flash"
+default_model = "deepseek-v4-flash"
 language      = "zh"
 
-# ── AI 模型提供商 ──
+# ── AI 模型提供商 ─────────────────────────────────────────────────────────
 
 [[providers]]
 
@@ -20,74 +22,180 @@ api_key_env = "DEEPSEEK_API_KEY"
 context_window = 1000000
 price       = { cache_hit = 0.02, input = 1, output = 2, currency = "¥" }
 
-# ── Agent 行为 ──
+# ── 用户界面 ───────────────────────────────────────────────────────────────
+
+[ui]
+
+theme       = "auto"       # auto|dark|light; CLI 配色
+theme_style = "glacier"    # CLI 强调色板
+
+# ── 桌面端 ─────────────────────────────────────────────────────────────────
+
+[desktop]
+
+layout_style    = "workbench"   # classic|workbench|creation
+theme           = "auto"         # auto|dark|light
+close_behavior  = "background"   # quit|background
+default_tool_approval_mode = "ask"
+expand_thinking = false
+
+# ── 系统通知 ───────────────────────────────────────────────────────────────
+
+[notifications]
+
+enabled          = false   # 系统通知开关
+turn_done        = true    # 轮次完成通知
+approval_request = true    # 工具审批通知
+ask_request      = true    # 提问通知
+
+# ── 网络 / 代理 ────────────────────────────────────────────────────────────
+# 部分企业 / 校园网络需要通过代理访问外部 API。
+
+[network]
+
+proxy_mode = "auto"   # auto|env|custom|off
+
+[network.proxy]
+
+type     = "socks5"   # http|https|socks5|socks5h
+# server = "127.0.0.1"
+# port   = 7890
+# username = ""
+# password = "${REASONIX_PROXY_PASSWORD}"
+
+# ── Agent 行为 ─────────────────────────────────────────────────────────────
 
 [agent]
 
 temperature       = 0.0
-auto_plan         = "off"
+auto_plan         = "off"       # off|on; off 保留手动 Plan 模式
 memory_compiler   = { enabled = false }
+reasoning_language = "zh"       # auto|zh|en; 思考过程语言
+soft_compact_ratio  = 0.5      # 达到此比例时提示压缩
+compact_ratio       = 0.8      # 达到此比例时尝试压缩
+compact_force_ratio = 0.9      # 强制压缩阈值
+cold_resume_prune   = true     # 恢复会话时清理过期的工具结果
 
-# ── 工具设置 ──
+# ── 工具设置 ───────────────────────────────────────────────────────────────
 
 [tools]
 
-enabled = []
-bash_timeout_seconds = 120
-mcp_call_timeout_seconds = 300
+enabled = []                     # 空 = 启用所有内置工具
+bash_timeout_seconds = 120       # 前台命令超时
+mcp_call_timeout_seconds = 300   # MCP 调用超时
 
 [tools.background_jobs]
 
-stalled_warning_seconds = 900
+stalled_warning_seconds = 900    # 后台任务卡住告警时间
 
-# ── 沙箱（安全隔离） ──
+[tools.shell]
+
+# prefer = "auto"   # auto|bash|powershell|pwsh
+
+# ── 语言服务器 (LSP) ──────────────────────────────────────────────────────
+# 安装后如果用户也使用 Reasonix CLI 编码，LSP 提供代码智能。
+
+[lsp]
+
+enabled = true
+
+# [lsp.servers.go]
+# command = "gopls"
+# args = []
+# extensions = [".go"]
+
+# [lsp.servers.typescript]
+# command = "typescript-language-server"
+# args = ["--stdio"]
+# extensions = [".ts", ".tsx", ".js", ".jsx"]
+
+# ── 技能 (Skills) ─────────────────────────────────────────────────────────
+# 可在此添加自定义技能路径。
+
+[skills]
+
+# paths = ["~/my-skills", "../shared/skills"]
+# excluded_paths = []
+# max_depth = 3
+# disabled_skills = []
+
+# ── 沙箱（安全隔离） ─────────────────────────────────────────────────────
 
 [sandbox]
 
-bash    = "off"
+bash    = "off"       # Bot 模式建议关闭沙箱
 network = true
+# workspace_root = ""            # 默认: 当前工作目录
+# allow_write = ["/tmp"]         # 额外允许写入的目录
+# forbid_read = []               # 禁止读取的目录
+
+# ── 权限 / 工具审批 ──────────────────────────────────────────────────────
+
+[permissions]
+
+mode  = "ask"        # ask|allow|deny; 未匹配规则时的默认行为
+# deny = ["Bash(rm -rf*)", "Bash(git push*)"]
+# allow = ["Bash(go test:*)", "Bash(git status:*)"]
+# ask = ["Edit(src/**)"]
+
+# ── 自定义状态栏 ──────────────────────────────────────────────────────────
+# 如需自定义 CLI 底部状态栏，可设置命令。
+
+[statusline]
+
+# command = "my-statusline.sh"
+
+# ── MCP 插件 ──────────────────────────────────────────────────────────────
+# 外部 MCP 服务器。type: "stdio" (默认) | "http" | "sse"
+# ${VAR} / ${VAR:-default} 会从环境变量展开。
+
+[[plugins]]
+
+name    = "everything"
+command = "npx"
+args    = ["-y", "@modelcontextprotocol/server-everything"]
 
 # ═══════════════════════════════════════════════════════════════════════════
-# Bot 网关
+# Bot 网关 — 多通道 IM Bot
 # ═══════════════════════════════════════════════════════════════════════════
 
 [bot]
 
-enabled = true
+enabled            = true
+# model = ""       # 空 = 使用 default_model
 tool_approval_mode = "yolo"
-max_steps = 40
-debounce_ms = 3000
+max_steps          = 40
+debounce_ms        = 3000
 
 [bot.allowlist]
 
-enabled = true
-allow_all = true
-qq_users = []
+enabled    = true
+allow_all  = true
+qq_users   = []
 feishu_users = ["ou_xxxxxxxxxxxxxxxxxxxxxxxxxxxxx"]
-weixin_users = []
-qq_groups = []
+weixin_users  = []
+qq_groups     = []
 feishu_groups = []
 weixin_groups = []
 
 [bot.qq]
 enabled = true
 app_id = "your-qq-app-id"
-app_secret_env = "QQ_BOT_APP_SECRET"
-sandbox = false
+app_secret_env  = "QQ_BOT_APP_SECRET"
+sandbox         = false
 
 [bot.feishu]
-
 enabled = true
 app_id = "your-feishu-app-id"
-domain = "feishu"
-app_secret_env = "FEISHU_BOT_APP_SECRET"
-verification_token = ""
+domain              = "feishu"
+app_secret_env      = "FEISHU_BOT_APP_SECRET"
+verification_token  = ""
 mode = "websocket"
-webhook_port = 8080
-require_mention = false
+webhook_port        = 8080
+require_mention     = false
 
 [bot.weixin]
 enabled = true
-account_id = "default"
-token_env = "WEIXIN_BOT_TOKEN"
-api_base = "https://ilinkai.weixin.qq.com"
+account_id  = "default"
+token_env   = "WEIXIN_BOT_TOKEN"
+api_base    = "https://ilinkai.weixin.qq.com"
