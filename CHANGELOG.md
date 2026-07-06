@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [0.4.3](https://github.com/u1in/reasonix-feishu-deploy/compare/v0.4.2...v0.4.3) (2026-07-06)
+
+
+### ♻️ 重构
+
+* simplify banner to plain separator style ([ba27359](https://github.com/u1in/reasonix-feishu-deploy/commit/ba2735926a7fb1d8e02c53ce9ed95dc8783a121f))
+
 ## [0.4.2](https://github.com/u1in/reasonix-feishu-deploy/compare/v0.4.1...v0.4.2) (2026-07-06)
 
 
