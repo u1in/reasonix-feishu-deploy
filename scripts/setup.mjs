@@ -7,7 +7,7 @@
  *       或者: npm run setup (在 reasonix-deploy 包中)
  */
 import prompts from 'prompts';
-import { readFileSync, writeFileSync, existsSync, mkdirSync, copyFileSync, chmodSync, appendFileSync } from 'fs';
+import { readFileSync, writeFileSync, existsSync, mkdirSync, copyFileSync, chmodSync } from 'fs';
 import { homedir } from 'os';
 import { resolve, dirname } from 'path';
 import { fileURLToPath } from 'url';
@@ -17,7 +17,6 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 const HOME = homedir();
 const CONFIG_DIR = `${HOME}/.config/reasonix-bot`;
 const CONFIG_FILE = `${CONFIG_DIR}/reasonix.toml`;
-const ENV_FILE = `${CONFIG_DIR}/.env`;
 const TEMPLATE_FILE = resolve(__dirname, '../config/reasonix.toml');
 const PACKAGE_SCRIPTS_DIR = resolve(__dirname, '../scripts');
 
@@ -63,32 +62,6 @@ const dim    = s => color(s, 2);
 
 function title(text) {
   console.log(`\n${bold(cyan('━━━ ' + text + ' ━━━'))}\n`);
-}
-
-function loadEnv(varName) {
-  if (!existsSync(ENV_FILE)) return '';
-  try {
-    const content = readFileSync(ENV_FILE, 'utf-8');
-    const match = content.match(new RegExp(`^${varName}=(.*)`, 'm'));
-    return match ? match[1].trim() : '';
-  } catch { return ''; }
-}
-
-function saveEnv(varName, value) {
-  mkdirSync(CONFIG_DIR, { recursive: true });
-  if (existsSync(ENV_FILE)) {
-    const content = readFileSync(ENV_FILE, 'utf-8');
-    if (new RegExp(`^${varName}=`).test(content)) {
-      const updated = content.replace(new RegExp(`^${varName}=.*`, 'm'), `${varName}=${value}`);
-      writeFileSync(ENV_FILE, updated, 'utf-8');
-      return;
-    }
-  } else {
-    const header = '# Reasonix API Keys — 由 setup.mjs 自动生成\n# 警告: 此文件包含密钥，请勿提交到版本控制\n\n';
-    writeFileSync(ENV_FILE, header, 'utf-8');
-  }
-  appendFileSync(ENV_FILE, `${varName}=${value}\n`, 'utf-8');
-  chmodSync(ENV_FILE, 0o600);
 }
 
 // ── 步骤 1: 环境准备 ──
@@ -137,16 +110,12 @@ async function collectConfig(cli = {}) {
   if (appId) console.log(`  ${green('✓')} 已设置`);
 
   // ─── 2. 飞书 App Secret ───
-  let feishuSecret = loadEnv('FEISHU_BOT_APP_SECRET');
-  if (!feishuSecret && cli.appSecret) {
-    feishuSecret = cli.appSecret;
-    saveEnv('FEISHU_BOT_APP_SECRET', feishuSecret);
-  }
-  if (feishuSecret) {
-    console.log(`  ${green('✓')} 飞书 App Secret ${dim('(已配置)')}`);
-  } else {
+  let feishuSecret = cli.appSecret || '';
+  if (!feishuSecret) {
     const r = await prompts({ type: 'password', name: 'v', message: '请输入飞书 App Secret', hint: 'https://open.feishu.cn/app → 选择你的应用 → 凭证与基础信息' }, { onCancel });
-    if (r.v) { feishuSecret = r.v; saveEnv('FEISHU_BOT_APP_SECRET', feishuSecret); console.log(`  ${green('✓')} FEISHU_BOT_APP_SECRET 已保存`); }
+    if (r.v) { feishuSecret = r.v; console.log(`  ${green('✓')} FEISHU_BOT_APP_SECRET 已设置`); }
+  } else {
+    console.log(`  ${green('✓')} 飞书 App Secret ${dim('(已配置)')}`);
   }
 
   // ─── 3-5. 飞书配置确认（安静模式跳过） ───
@@ -189,16 +158,12 @@ async function collectConfig(cli = {}) {
   console.log(`  ${green('✓')} 群聊 @Bot 回复: ${requireMention ? '需要 @' : '不需要'}`);
 
   // ─── 9. DeepSeek API Key ───
-  let deepseekKey = loadEnv('DEEPSEEK_API_KEY');
-  if (!deepseekKey && cli.apiKey) {
-    deepseekKey = cli.apiKey;
-    saveEnv('DEEPSEEK_API_KEY', deepseekKey);
-  }
-  if (deepseekKey) {
-    console.log(`  ${green('✓')} DeepSeek API Key ${dim('(已配置)')}`);
-  } else {
+  let deepseekKey = cli.apiKey || '';
+  if (!deepseekKey) {
     const r = await prompts({ type: 'password', name: 'v', message: '请输入 DeepSeek API Key', hint: 'https://platform.deepseek.com → API Keys' }, { onCancel });
-    if (r.v) { deepseekKey = r.v; saveEnv('DEEPSEEK_API_KEY', deepseekKey); console.log(`  ${green('✓')} DEEPSEEK_API_KEY 已保存`); }
+    if (r.v) { deepseekKey = r.v; console.log(`  ${green('✓')} DeepSeek API Key 已设置`); }
+  } else {
+    console.log(`  ${green('✓')} DeepSeek API Key ${dim('(已配置)')}`);
   }
 
   return { appId, mode: 'websocket', allowAll, feishuUsers, requireMention, feishuSecret, deepseekKey };
@@ -209,10 +174,10 @@ async function confirmConfig(config, cli = {}) {
   title('配置摘要');
 
   console.log(`  ${cyan('飞书 App ID')}    ${config.appId || dim('(未设置)')}`);
-  console.log(`  ${cyan('飞书 App Secret')} ${config.feishuSecret ? dim('(已保存)') : red('(未设置)')}`);
+  console.log(`  ${cyan('飞书 App Secret')} ${config.feishuSecret ? dim('(已配置)') : red('(未设置)')}`);
   console.log(`  ${cyan('白名单')}         ${config.allowAll ? '允许所有用户' : `仅允许 ${config.feishuUsers.length} 个用户`}`);
   console.log(`  ${cyan('@提及回复')}      ${config.requireMention ? '需要 @Bot' : '不需要'}`);
-  console.log(`  ${cyan('DeepSeek Key')}   ${config.deepseekKey ? dim('(已保存)') : red('(未设置)')}`);
+  console.log(`  ${cyan('DeepSeek Key')}   ${config.deepseekKey ? dim('(已配置)') : red('(未设置)')}`);
   console.log();
 
   if (cli.yes) {
@@ -298,7 +263,9 @@ async function generateConfig(config, cli = {}) {
     args: 'bot start --channels feishu --dir ${CONFIG_DIR}',
     cwd: '${CONFIG_DIR}',
     env: {
-      REASONIX_HOME: '${CONFIG_DIR}/.reasonix'
+      REASONIX_HOME: '${CONFIG_DIR}/.reasonix',
+      DEEPSEEK_API_KEY: '${config.deepseekKey}',
+      FEISHU_BOT_APP_SECRET: '${config.feishuSecret}'
     },
     interpreter: 'none',
     autorestart: true,
@@ -483,8 +450,7 @@ function printSummary() {
   console.log();
   console.log(`  ${cyan('📁')}  ~/.config/reasonix-bot/`);
   console.log(`     ${dim('├──')} reasonix.toml        配置文件`);
-  console.log(`     ${dim('├──')} .env                 API 密钥`);
-  console.log(`     ${dim('├──')} ecosystem.config.js   PM2 配置`);
+  console.log(`     ${dim('├──')} ecosystem.config.js   PM2 配置（含 API 密钥）`);
   console.log(`     ${dim('├──')} pm2-start-bot.sh     启动脚本`);
   console.log(`     ${dim('├──')} pm2-stop-bot.sh      停止脚本`);
   console.log(`     ${dim('├──')} uninstall.sh         卸载脚本`);

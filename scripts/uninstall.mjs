@@ -51,8 +51,6 @@ function parseArgs() {
     if (arg === '--no-remove-sessions') { cli.removeSessions = false; continue; }
     if (arg === '--remove-logs')    { cli.removeLogs = true; continue; }
     if (arg === '--no-remove-logs') { cli.removeLogs = false; continue; }
-    if (arg === '--remove-env')    { cli.removeEnv = true; continue; }
-    if (arg === '--no-remove-env') { cli.removeEnv = false; continue; }
     if (arg === '--remove-aliases')    { cli.removeAliases = true; continue; }
     if (arg === '--no-remove-aliases') { cli.removeAliases = false; continue; }
     if (arg === '--remove-reasonix')    { cli.removeReasonix = true; continue; }
@@ -297,32 +295,8 @@ async function main() {
     console.log(`  ${dim('─')} 保留会话与记忆数据`);
   }
 
-  // ─── 4. API 密钥 ───
-  title('4/6 — API 密钥');
-
-  const envFile = `${CONFIG_DIR}/.env`;
-  if (existsSync(envFile)) {
-    let removeEnv;
-    if (cli.removeEnv !== undefined) {
-      removeEnv = cli.removeEnv;
-    } else if (!isQuiet) {
-      const r = await prompts({ type: 'confirm', name: 'v', message: '是否删除 ~/.config/reasonix-bot/.env（API 密钥文件）？', hint: '注意: 删除后需重新录入', initial: false }, { onCancel });
-      removeEnv = r.v;
-    } else {
-      removeEnv = false;
-    }
-    if (removeEnv) {
-      unlinkSync(envFile);
-      console.log(`  ${green('✓')} 已删除: .env`);
-    } else {
-      console.log(`  ${dim('─')} 保留 .env`);
-    }
-  } else {
-    console.log(`  ${dim('─')} .env 不存在，跳过`);
-  }
-
-  // ─── 5. Shell 别名 ───
-  title('5/6 — Shell 别名');
+  // ─── 4. Shell 别名 ───
+  title('4/6 — Shell 别名');
 
   if (hasAliases) {
     let removeAliases;
@@ -351,8 +325,8 @@ async function main() {
     console.log(`  ${dim('─')} 未发现别名，跳过`);
   }
 
-  // ─── 6. 全局 CLI ───
-  title('6/6 — 全局 CLI');
+  // ─── 5. 全局 CLI ───
+  title('5/6 — 全局 CLI');
 
   const cliActions = [];
 
