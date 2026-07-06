@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [0.4.0](https://github.com/u1in/reasonix-feishu-deploy/compare/v0.3.2...v0.4.0) (2026-07-06)
+
+
+### ♻️ 重构
+
+* abandon REASONIX_HOME isolation, use config merge instead ([fe7905e](https://github.com/u1in/reasonix-feishu-deploy/commit/fe7905e425aa4b595fa595b7e6660482365b020a))
+
 ## [0.3.2](https://github.com/u1in/reasonix-feishu-deploy/compare/v0.3.0...v0.3.2) (2026-07-06)
 
 
