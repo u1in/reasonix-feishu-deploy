@@ -280,6 +280,12 @@ async function generateConfig(config, cli = {}) {
   configContent = configContent.replace(/^(\[bot\.qq\]\n?)enabled = true/m, `$1enabled = false`);
   configContent = configContent.replace(/^(\[bot\.weixin\]\n?)enabled = true/m, `$1enabled = false`);
 
+  // 确保 Bot 网关主开关已启用（必需，否则 reasonix bot start 拒绝启动）
+  configContent = configContent.replace(
+    /(\[bot\]\s*\n(?:#.*\n)*)enabled\s*=\s*false/m,
+    '$1enabled = true',
+  );
+
   writeFileSync(CONFIG_FILE, configContent, 'utf-8');
   console.log(`  ${green('✓')} 配置文件已生成: ~/.config/reasonix-bot/config.toml`);
 

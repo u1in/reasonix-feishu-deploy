@@ -6,7 +6,19 @@
  * 用法: node uninstall.mjs
  *       或者: npm run uninstall (在 reasonix-deploy 包中)
  */
-import prompts from 'prompts';
+import { createRequire } from 'module';
+const _require = createRequire(import.meta.url);
+
+let prompts;
+try {
+  prompts = _require('prompts');
+} catch {
+  console.log('正在安装 prompts 依赖...');
+  const { execSync } = await import('child_process');
+  execSync('npm install -g prompts 2>/dev/null', { stdio: 'inherit' });
+  prompts = _require('prompts');
+}
+
 import { existsSync, readFileSync, writeFileSync, unlinkSync, rmSync, readdirSync } from 'fs';
 import { homedir } from 'os';
 import { execSync } from 'child_process';
