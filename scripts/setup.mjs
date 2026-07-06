@@ -21,6 +21,36 @@ const ENV_FILE = `${CONFIG_DIR}/.env`;
 const TEMPLATE_FILE = resolve(__dirname, '../config/reasonix.toml');
 const PACKAGE_SCRIPTS_DIR = resolve(__dirname, '../scripts');
 
+// ── CLI 参数解析 ──
+function parseArgs() {
+  const args = process.argv.slice(2);
+  const cli = { yes: false };
+  for (let i = 0; i < args.length; i++) {
+    const arg = args[i];
+    if (arg === '--yes' || arg === '-y') { cli.yes = true; continue; }
+    if (arg === '--allow-all')  { cli.allowAll = true; continue; }
+    if (arg === '--no-allow-all') { cli.allowAll = false; continue; }
+    if (arg === '--require-mention') { cli.requireMention = true; continue; }
+    if (arg === '--no-require-mention') { cli.requireMention = false; continue; }
+    if (arg === '--startup') { cli.startup = true; continue; }
+    if (arg === '--no-startup') { cli.startup = false; continue; }
+    if (arg === '--start') { cli.start = true; continue; }
+    if (arg === '--no-start') { cli.start = false; continue; }
+    if (arg === '--add-aliases') { cli.addAliases = true; continue; }
+    if (arg === '--no-add-aliases') { cli.addAliases = false; continue; }
+
+    const eqIdx = arg.indexOf('=');
+    const key = eqIdx !== -1 ? arg.slice(0, eqIdx) : arg;
+    const val = eqIdx !== -1 ? arg.slice(eqIdx + 1) : (i + 1 < args.length ? args[++i] : '');
+    if (key === '--app-id')     { cli.appId = val; }
+    else if (key === '--app-secret') { cli.appSecret = val; }
+    else if (key === '--api-key')    { cli.apiKey = val; }
+    else if (key === '--users')      { cli.feishuUsers = val.split(',').map(s => s.trim()).filter(Boolean); }
+    else if (key.startsWith('--'))   { console.warn(`  ${yellow('⚠')} 未知参数: ${key}`); }
+  }
+  return cli;
+}
+
 // ── 工具函数 ──
 
 function color(s, c) { return `\x1b[${c}m${s}\x1b[0m`; }
@@ -93,9 +123,12 @@ async function ensureEnvironment() {
 }
 
 // ── 步骤 2: 交互式配置收集 ──
-async function collectConfig() {
-  title('飞书 Bot 配置');
-  console.log(`  ${dim('用方向键 ↑↓ 选择，回车确认，Ctrl+C 随时取消')}\n`);
+async function collectConfig(cli = {}) {
+  const isQuiet = cli.yes;
+  if (!isQuiet) {
+    title('飞书 Bot 配置');
+    console.log(`  ${dim('用方向键 ↑↓ 选择，回车确认，Ctrl+C 随时取消')}\n`);
+  }
 
   const onCancel = () => {
     console.log(`\n  ${yellow('⚠')} 向导已取消`);
@@ -103,130 +136,83 @@ async function collectConfig() {
   };
 
   // ─── 1. 飞书 App ID ───
-  const { appId } = await prompts({
-    type: 'text',
-    name: 'appId',
-    message: '请输入飞书 App ID',
-    hint: 'https://open.feishu.cn/app → 选择你的应用 → 凭证与基础信息',
-    validate: v => v.length > 0 || 'App ID 不能为空，可在安装后手动编辑 config.toml',
-  }, { onCancel });
+  let appId = cli.appId || '';
+  if (!appId) {
+    const r = await prompts({ type: 'text', name: 'v', message: '请输入飞书 App ID', hint: 'https://open.feishu.cn/app → 选择你的应用 → 凭证与基础信息' }, { onCancel });
+    appId = r.v || '';
+  }
   if (appId) console.log(`  ${green('✓')} 已设置`);
 
   // ─── 2. 飞书 App Secret ───
-  const currentSecret = loadEnv('FEISHU_BOT_APP_SECRET');
-  let feishuSecret = currentSecret;
-  if (currentSecret) {
+  let feishuSecret = loadEnv('FEISHU_BOT_APP_SECRET');
+  if (!feishuSecret && cli.appSecret) {
+    feishuSecret = cli.appSecret;
+    saveEnv('FEISHU_BOT_APP_SECRET', feishuSecret);
+  }
+  if (feishuSecret) {
     console.log(`  ${green('✓')} 飞书 App Secret ${dim('(已配置)')}`);
   } else {
-    const { secret } = await prompts({
-      type: 'password',
-      name: 'secret',
-      message: '请输入飞书 App Secret',
-      hint: 'https://open.feishu.cn/app → 选择你的应用 → 凭证与基础信息',
-      validate: v => v.length > 0 || 'App Secret 不能为空',
-    }, { onCancel });
-    if (secret) {
-      feishuSecret = secret;
-      saveEnv('FEISHU_BOT_APP_SECRET', feishuSecret);
-      console.log(`  ${green('✓')} FEISHU_BOT_APP_SECRET 已保存`);
-    }
+    const r = await prompts({ type: 'password', name: 'v', message: '请输入飞书 App Secret', hint: 'https://open.feishu.cn/app → 选择你的应用 → 凭证与基础信息' }, { onCancel });
+    if (r.v) { feishuSecret = r.v; saveEnv('FEISHU_BOT_APP_SECRET', feishuSecret); console.log(`  ${green('✓')} FEISHU_BOT_APP_SECRET 已保存`); }
   }
 
-  // ─── 3. 权限确认 ───
-  await prompts({
-    type: 'confirm',
-    name: 'permChecked',
-    message: '请确认飞书机器人已拥有以下权限:\n  • im:message:readonly\n  • im:message.p2p_msg:readonly\n  \n  👉 https://open.feishu.cn/app → 权限管理 检查\n  确认已添加？',
-    initial: true,
-  }, { onCancel });
-
-  // ─── 4. 订阅方式确认 ───
-  await prompts({
-    type: 'confirm',
-    name: 'modeChecked',
-    message: '请确认飞书机器人的事件订阅方式选择了「长连接(WebSocket)」:\n  \n  👉 https://open.feishu.cn/app → 事件与回调 → 订阅方式 检查\n  确认已选择「通过长连接接收事件」？',
-    initial: true,
-  }, { onCancel });
-
-  // ─── 5. 事件回调确认 ───
-  await prompts({
-    type: 'confirm',
-    name: 'eventChecked',
-    message: '请确认飞书机器人已添加以下事件:\n  • im.message.receive_v1\n  \n  👉 https://open.feishu.cn/app → 事件与回调 检查\n  确认已添加？',
-    initial: true,
-  }, { onCancel });
+  // ─── 3-5. 飞书配置确认（安静模式跳过） ───
+  if (!isQuiet) {
+    await prompts({ type: 'confirm', name: 'v', message: '请确认飞书机器人已拥有以下权限:\n  • im:message:readonly\n  • im:message.p2p_msg:readonly\n  \n  👉 https://open.feishu.cn/app → 权限管理 检查\n  确认已添加？', initial: true }, { onCancel });
+    await prompts({ type: 'confirm', name: 'v', message: '请确认飞书机器人的事件订阅方式选择了「长连接(WebSocket)」:\n  \n  👉 https://open.feishu.cn/app → 事件与回调 → 订阅方式 检查\n  确认已选择「通过长连接接收事件」？', initial: true }, { onCancel });
+    await prompts({ type: 'confirm', name: 'v', message: '请确认飞书机器人已添加以下事件:\n  • im.message.receive_v1\n  \n  👉 https://open.feishu.cn/app → 事件与回调 检查\n  确认已添加？', initial: true }, { onCancel });
+  }
 
   // ─── 6. 白名单策略 ───
-  const { allowAll } = await prompts({
-    type: 'select',
-    name: 'allowAll',
-    message: '请选择白名单策略',
-    choices: [
-      { title: '允许所有用户', description: '任何人都可与 Bot 对话，推荐', value: true },
-      { title: '仅允许指定用户', description: '需要输入飞书用户 Open ID', value: false },
-    ],
-    initial: 0,
-  }, { onCancel });
+  let allowAll = true;
+  if (cli.allowAll !== undefined) {
+    allowAll = cli.allowAll;
+  } else {
+    const r = await prompts({ type: 'select', name: 'v', message: '请选择白名单策略', choices: [{ title: '允许所有用户', description: '任何人都可与 Bot 对话，推荐', value: true }, { title: '仅允许指定用户', description: '需要输入飞书用户 Open ID', value: false }], initial: 0 }, { onCancel });
+    allowAll = r.v;
+  }
+  console.log(`  ${green('✓')} 白名单: ${allowAll ? '允许所有用户' : '仅限指定用户'}`);
 
-  // ─── 7. 飞书用户 Open ID（条件） ───
+  // ─── 7. 飞书用户 Open ID ───
   let feishuUsers = ['ou_xxxxxxxxxxxxxxxxxxxxxxxxxxxxx'];
   if (!allowAll) {
-    const { users } = await prompts({
-      type: 'list',
-      name: 'users',
-      message: '请输入允许的飞书用户 Open ID（多个用逗号分隔）',
-      hint: '格式: ou_xxxxxxxxxxxxxxxxxxxxxxxxxxxxx',
-      separator: ',',
-      validate: list => list.length > 0 || '至少输入一个用户 ID',
-    }, { onCancel });
-    feishuUsers = users.map(u => u.trim()).filter(Boolean);
+    if (cli.feishuUsers && cli.feishuUsers.length > 0) {
+      feishuUsers = cli.feishuUsers;
+    } else {
+      const r = await prompts({ type: 'list', name: 'v', message: '请输入允许的飞书用户 Open ID（多个用逗号分隔）', hint: '格式: ou_xxxxxxxxxxxxxxxxxxxxxxxxxxxxx', separator: ',' }, { onCancel });
+      feishuUsers = r.v.map(u => u.trim()).filter(Boolean);
+    }
     console.log(`  ${green('✓')} 已记录 ${feishuUsers.length} 个用户`);
   }
 
-  // ─── 7. @提及回复 ───
-  const { requireMention } = await prompts({
-    type: 'toggle',
-    name: 'requireMention',
-    message: '群聊中是否需要 @Bot 才回复？',
-    initial: true,
-    active: '需要 @',
-    inactive: '不需要',
-  }, { onCancel });
+  // ─── 8. @提及回复 ───
+  let requireMention = true;
+  if (cli.requireMention !== undefined) {
+    requireMention = cli.requireMention;
+  } else {
+    const r = await prompts({ type: 'toggle', name: 'v', message: '群聊中是否需要 @Bot 才回复？', initial: true, active: '需要 @', inactive: '不需要' }, { onCancel });
+    requireMention = r.v;
+  }
   console.log(`  ${green('✓')} 群聊 @Bot 回复: ${requireMention ? '需要 @' : '不需要'}`);
 
-  // ─── 8. DeepSeek API Key ───
-  const currentKey = loadEnv('DEEPSEEK_API_KEY');
-  let deepseekKey = currentKey;
-  if (currentKey) {
+  // ─── 9. DeepSeek API Key ───
+  let deepseekKey = loadEnv('DEEPSEEK_API_KEY');
+  if (!deepseekKey && cli.apiKey) {
+    deepseekKey = cli.apiKey;
+    saveEnv('DEEPSEEK_API_KEY', deepseekKey);
+  }
+  if (deepseekKey) {
     console.log(`  ${green('✓')} DeepSeek API Key ${dim('(已配置)')}`);
   } else {
-    const { apiKey } = await prompts({
-      type: 'password',
-      name: 'apiKey',
-      message: '请输入 DeepSeek API Key',
-      hint: 'https://platform.deepseek.com → API Keys',
-      validate: v => v.length > 0 || 'API Key 不能为空',
-    }, { onCancel });
-    if (apiKey) {
-      deepseekKey = apiKey;
-      saveEnv('DEEPSEEK_API_KEY', deepseekKey);
-      console.log(`  ${green('✓')} DEEPSEEK_API_KEY 已保存`);
-    }
+    const r = await prompts({ type: 'password', name: 'v', message: '请输入 DeepSeek API Key', hint: 'https://platform.deepseek.com → API Keys' }, { onCancel });
+    if (r.v) { deepseekKey = r.v; saveEnv('DEEPSEEK_API_KEY', deepseekKey); console.log(`  ${green('✓')} DEEPSEEK_API_KEY 已保存`); }
   }
 
-  return {
-    appId: appId || '',
-    mode: 'websocket',
-    allowAll,
-    feishuUsers,
-    requireMention,
-    feishuSecret,
-    deepseekKey,
-  };
+  return { appId, mode: 'websocket', allowAll, feishuUsers, requireMention, feishuSecret, deepseekKey };
 }
 
 // ── 步骤 3: 配置摘要 + 确认 ──
-async function confirmConfig(config) {
+async function confirmConfig(config, cli = {}) {
   title('配置摘要');
 
   console.log(`  ${cyan('飞书 App ID')}    ${config.appId || dim('(未设置)')}`);
@@ -243,6 +229,11 @@ async function confirmConfig(config) {
     initial: true,
   });
 
+  if (cli.yes) {
+    console.log(`  ${green('✓')} 自动确认`);
+    return;
+  }
+
   if (!confirmed) {
     console.log(`\n  ${yellow('⚠')} 安装已取消`);
     process.exit(0);
@@ -250,21 +241,17 @@ async function confirmConfig(config) {
 }
 
 // ── 步骤 4: 生成配置 ──
-async function generateConfig(config) {
+async function generateConfig(config, cli = {}) {
   title('生成配置');
 
   mkdirSync(CONFIG_DIR, { recursive: true });
 
   if (existsSync(CONFIG_FILE)) {
-    const { overwrite } = await prompts({
-      type: 'confirm',
-      name: 'overwrite',
-      message: `~/.config/reasonix-bot/config.toml 已存在，是否覆盖？`,
-      initial: false,
-    });
-    if (!overwrite) {
-      console.log(`  ${green('✓')} 保留现有配置`);
-      return;
+    if (cli.yes) {
+      console.log(`  ${green('✓')} 覆盖现有配置`);
+    } else {
+      const r = await prompts({ type: 'confirm', name: 'v', message: `~/.config/reasonix-bot/config.toml 已存在，是否覆盖？`, initial: false });
+      if (!r.v) { console.log(`  ${green('✓')} 保留现有配置`); return; }
     }
   }
 
@@ -340,12 +327,13 @@ async function generateConfig(config) {
   }
 
   // PM2 开机自启
-  const { startup } = await prompts({
-    type: 'confirm',
-    name: 'startup',
-    message: '是否配置 PM2 开机自启？',
-    initial: false,
-  });
+  let startup = false;
+  if (cli.startup !== undefined) {
+    startup = cli.startup;
+  } else {
+    const r = await prompts({ type: 'confirm', name: 'v', message: '是否配置 PM2 开机自启？', initial: false });
+    startup = r.v;
+  }
 
   if (startup) {
     try {
@@ -358,15 +346,21 @@ async function generateConfig(config) {
 }
 
 // ── 步骤 5: 启动 ──
-async function startBot() {
+async function startBot(cli = {}) {
   title('启动 Bot');
 
-  const { start } = await prompts({
-    type: 'confirm',
-    name: 'start',
-    message: '是否现在启动 Bot？',
-    initial: true,
-  });
+  let start;
+  if (cli.start !== undefined) {
+    start = cli.start;
+  } else {
+    const r = await prompts({
+      type: 'confirm',
+      name: 'v',
+      message: '是否现在启动 Bot？',
+      initial: true,
+    });
+    start = r.v;
+  }
 
   if (start) {
     try {
@@ -417,16 +411,22 @@ ${ALIAS_MARKER_END}
 `;
 }
 
-async function setupShellAliases() {
+async function setupShellAliases(cli = {}) {
   title('Shell 别名');
 
-  const { addAliases } = await prompts({
-    type: 'confirm',
-    name: 'addAliases',
-    message: '是否添加 rb-* 快捷命令到 Shell 配置？（rb-start / rb-stop / rb-logs 等）',
-    hint: '添加后重开终端或 source 即可使用',
-    initial: true,
-  });
+  let addAliases;
+  if (cli.addAliases !== undefined) {
+    addAliases = cli.addAliases;
+  } else {
+    const r = await prompts({
+      type: 'confirm',
+      name: 'v',
+      message: '是否添加 rb-* 快捷命令到 Shell 配置？（rb-start / rb-stop / rb-logs 等）',
+      hint: '添加后重开终端或 source 即可使用',
+      initial: true,
+    });
+    addAliases = r.v;
+  }
 
   if (!addAliases) {
     console.log(`  ${dim('─')} 跳过`);
@@ -499,33 +499,38 @@ function printSummary() {
 // ═══════════════════════════════════════════════════════
 
 async function main() {
-  console.clear();
-  console.log(`\n${green('  ╭──────────────────────────────────────────────╮')}`);
-  console.log(`${green('  │')}                                              ${green('│')}`);
-  console.log(`${green('  │')}   🤖  Reasonix 飞书 Bot — 部署向导          ${green('│')}`);
-  console.log(`${green('  │')}                                              ${green('│')}`);
-  console.log(`${green('  │')}   用方向键 ↑↓ 选择，回车确认                 ${green('│')}`);
-  console.log(`${green('  │')}                                              ${green('│')}`);
-  console.log(`${green('  ╰──────────────────────────────────────────────╯')}`);
-  console.log();
+  const cli = parseArgs();
+  const isQuiet = cli.yes;
+
+  if (!isQuiet) {
+    console.clear();
+    console.log(`\n${green('  ╭──────────────────────────────────────────────╮')}`);
+    console.log(`${green('  │')}                                              ${green('│')}`);
+    console.log(`${green('  │')}   🤖  Reasonix 飞书 Bot — 部署向导          ${green('│')}`);
+    console.log(`${green('  │')}                                              ${green('│')}`);
+    console.log(`${green('  │')}   用方向键 ↑↓ 选择，回车确认                 ${green('│')}`);
+    console.log(`${green('  │')}                                              ${green('│')}`);
+    console.log(`${green('  ╰──────────────────────────────────────────────╯')}`);
+    console.log();
+  }
 
   // 1. 环境准备
   await ensureEnvironment();
 
   // 2. 收集配置（含密钥）
-  const config = await collectConfig();
+  const config = await collectConfig(cli);
 
   // 3. 确认
-  await confirmConfig(config);
+  await confirmConfig(config, cli);
 
   // 4. 生成配置
-  await generateConfig(config);
+  await generateConfig(config, cli);
 
   // 5. Shell 别名
-  await setupShellAliases();
+  await setupShellAliases(cli);
 
   // 6. 启动
-  await startBot();
+  await startBot(cli);
 
   // 7. 完成
   printSummary();
