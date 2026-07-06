@@ -284,7 +284,9 @@ async function generateConfig(config, cli = {}) {
 
   // ── 将 PM2 进程的 cwd 设为 CONFIG_DIR，使 reasonix 的 config.Load()
   // ── (LoadForRoot(".")) 能加载 ~/.config/reasonix-bot/reasonix.toml
-  // ── 作为项目级配置，从而 [bot] enabled = true 覆盖用户级配置中的 false ──
+  // ── 作为项目级配置。⚠️ 同时必须设置 env.REASONIX_HOME
+  // ── 阻止 reasonix 的 loadBotCommandConfig() 回读 ~/.reasonix/config.toml
+  // ── 来覆盖项目级 [bot] enabled = true（见 internal/cli/bot.go:511-528） ──
 
   // PM2 ecosystem — 每次都重新生成，确保 cwd/reasonix 路径等始终正确
   const ecosystemFile = `${CONFIG_DIR}/ecosystem.config.js`;
@@ -295,6 +297,9 @@ async function generateConfig(config, cli = {}) {
     script: '${REASONIX_BIN}',
     args: 'bot start --channels feishu --dir ${CONFIG_DIR}',
     cwd: '${CONFIG_DIR}',
+    env: {
+      REASONIX_HOME: '${CONFIG_DIR}/.reasonix'
+    },
     interpreter: 'none',
     autorestart: true,
     max_restarts: 10,

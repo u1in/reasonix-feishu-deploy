@@ -48,7 +48,10 @@ fi
 
 # ── 启动 ──
 info "启动 reasonix-bot (PM2)..."
-REASONIX_BIN="$(which reasonix)" pm2 start "$ECOSYSTEM"
+# ⚠️ 设置 REASONIX_HOME 阻止 reasonix 读取 ~/.reasonix/config.toml（该用户级配置的
+#    [bot] enabled = false 会覆盖项目级配置的 enabled = true）
+#    详见 reasonix 源码 internal/cli/bot.go:511-528 (loadBotCommandConfig)
+REASONIX_HOME="$CONFIG_DIR/.reasonix" pm2 start "$ECOSYSTEM"
 pm2 save
 
 echo ""
