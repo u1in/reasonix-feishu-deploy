@@ -1,5 +1,7 @@
 # @u1in/reasonix-feishu-deploy
 
+> **[中文文档](README.zh.md)** | English
+
 [![npm version](https://img.shields.io/npm/v/@u1in/reasonix-feishu-deploy?logo=npm&logoColor=fff)](https://www.npmjs.com/package/@u1in/reasonix-feishu-deploy)
 [![npm downloads](https://img.shields.io/npm/dm/@u1in/reasonix-feishu-deploy?logo=npm&logoColor=fff)](https://www.npmjs.com/package/@u1in/reasonix-feishu-deploy)
 [![License](https://img.shields.io/npm/l/@u1in/reasonix-feishu-deploy)](https://github.com/u1in/reasonix-feishu-deploy/blob/main/LICENSE)
@@ -7,129 +9,129 @@
 [![GitHub last commit](https://img.shields.io/github/last-commit/u1in/reasonix-feishu-deploy?logo=github&logoColor=fff)](https://github.com/u1in/reasonix-feishu-deploy/commits)
 [![GitHub stars](https://img.shields.io/github/stars/u1in/reasonix-feishu-deploy?logo=github&logoColor=fff)](https://github.com/u1in/reasonix-feishu-deploy)
 
-🤖 在 Linux 上**一键部署** Reasonix AI Bot，接入飞书即时通讯。
+🤖 **One-click deploy** Reasonix AI Bot on Linux, integrated with Feishu (Lark) instant messaging.
 
-## 1. 安装
+## 1. Installation
 
 ```bash
-# 交互式安装
+# Interactive installation
 npx @u1in/reasonix-feishu-deploy
 
-# 通过命令行参数预填
+# Pre-fill via command-line arguments
 npx @u1in/reasonix-feishu-deploy \
   --app-id=cli_a5f8d2e1a3b4c0d0 \
   --app-secret=xxxxx \
   --api-key=sk-xxxxx
 ```
 
-### 安装参数
+### Installation Options
 
-| 参数 | 说明 |
-|------|------|
-| `--app-id <id>` | 飞书 App ID |
-| `--app-secret <secret>` | 飞书 App Secret |
+| Option | Description |
+|--------|-------------|
+| `--app-id <id>` | Feishu App ID |
+| `--app-secret <secret>` | Feishu App Secret |
 | `--api-key <key>` | DeepSeek API Key |
-| `--add-aliases` / `--no-add-aliases` | 添加 rb-* 快捷命令 |
+| `--add-aliases` / `--no-add-aliases` | Add rb-* shortcut commands |
 
-> 安装时如果检测到 `~/.reasonix/config.toml`（个人 Reasonix 配置），会自动备份并与其合并，保留你已有的 UI 主题、自定义 Provider、工具配置等非 Bot 设置。
+> During installation, if `~/.reasonix/config.toml` (your personal Reasonix config) is detected, it will be automatically backed up and merged with the new settings, preserving your existing UI theme, custom providers, tool configurations, and other non-Bot settings.
 
-## 2. 卸载
+## 2. Uninstall
 
 ```bash
-# 交互式卸载
+# Interactive uninstall
 npx @u1in/reasonix-feishu-deploy --undeploy
 ```
 
-### 卸载参数
+### Uninstall Options
 
-| 参数 | 说明 |
-|------|------|
-| `--remove-reasonix` / `--no-remove-reasonix` | 卸载 reasonix CLI（默认否） |
-| `--remove-pm2` / `--no-remove-pm2` | 卸载 PM2（默认否） |
+| Option | Description |
+|--------|-------------|
+| `--remove-reasonix` / `--no-remove-reasonix` | Uninstall reasonix CLI (default: no) |
+| `--remove-pm2` / `--no-remove-pm2` | Uninstall PM2 (default: no) |
 
-> 卸载时会询问是否还原 `~/.reasonix/config.toml` 到备份时的状态（安装时会自动备份 `config.toml.deploy-bak`）。
+> During uninstall, you will be asked whether to restore `~/.reasonix/config.toml` to its backup state (a `config.toml.deploy-bak` backup is automatically created during installation).
 
-## 3. 日常管理
+## 3. Daily Management
 
-安装时选择添加 rb-* 别名后，可使用快捷命令：
-
-```bash
-rb-start              # 启动 Bot
-rb-stop               # 停止 Bot
-rb-restart            # 重启 Bot
-rb-status             # 状态
-rb-logs               # 查看日志
-rb-undeploy           # 卸载
-```
-
-> 看到 `feishu sdk websocket connected` 表示连接成功。
-
-未安装别名时，使用 PM2 原始命令：
+If you chose to add rb-* aliases during installation, you can use these shortcut commands:
 
 ```bash
-pm2 start ~/.config/reasonix-bot/ecosystem.config.js   # 启动
-pm2 stop reasonix-bot                                   # 停止
-pm2 restart reasonix-bot                                # 重启
-pm2 status                                              # 状态
-pm2 logs reasonix-bot                                   # 日志
-node ~/.config/reasonix-bot/undeploy.mjs                # 卸载
+rb-start              # Start Bot
+rb-stop               # Stop Bot
+rb-restart            # Restart Bot
+rb-status             # Status
+rb-logs               # View logs
+rb-undeploy           # Uninstall
 ```
 
-### 修改配置
+> Seeing `feishu sdk websocket connected` indicates a successful connection.
+
+Without aliases, use PM2 native commands:
 
 ```bash
-vim ~/.reasonix/config.toml                                    # 用户级配置（白名单、通道、模型等）
-vim ~/.config/reasonix-bot/ecosystem.config.js                 # DeepSeek Key / 飞书 Secret
-# 改完后重启: rb-restart 或 pm2 restart reasonix-bot
+pm2 start ~/.config/reasonix-bot/ecosystem.config.js   # Start
+pm2 stop reasonix-bot                                   # Stop
+pm2 restart reasonix-bot                                # Restart
+pm2 status                                              # Status
+pm2 logs reasonix-bot                                   # Logs
+node ~/.config/reasonix-bot/undeploy.mjs                # Uninstall
 ```
 
-## 4. 配置机器人
+### Modify Configuration
 
-在[飞书开放平台](https://open.feishu.cn/)创建应用，完成以下配置：
+```bash
+vim ~/.reasonix/config.toml                                    # User-level config (whitelist, channels, models, etc.)
+vim ~/.config/reasonix-bot/ecosystem.config.js                 # DeepSeek Key / Feishu Secret
+# After changes, restart: rb-restart or pm2 restart reasonix-bot
+```
 
-1. **凭证与基础信息** → 获取 App ID 和 App Secret
-2. **权限管理** → 添加 `im:message`、`im:message.p2p_msg:readonly` 权限
-3. **事件与回调** → 订阅方式选「**通过长连接接收事件**」，添加 `im.message.receive_v1`
-4. **发布** → 右上角发布新版本（不发布不生效）
+## 4. Configure the Bot
 
-## 5. LLM 配置
+Create an app on the [Feishu Open Platform](https://open.feishu.cn/) and complete the following configuration:
 
-安装时需要填写 API Key，可在 [platform.deepseek.com](https://platform.deepseek.com/) 获取：
+1. **Credentials & Basic Info** → Get App ID and App Secret
+2. **Permissions Management** → Add `im:message` and `im:message.p2p_msg:readonly` permissions
+3. **Events & Callbacks** → Subscribe via "**Receive events via long-lived connection**", add `im.message.receive_v1`
+4. **Publish** → Click "Publish" in the top-right corner (changes take effect only after publishing)
 
-1. 注册/登录 → **API Keys** → 创建并复制 Key（只显示一次）
-2. 新账号默认有 500 万 token 赠额；余额不足会返回 429
+## 5. LLM Configuration
 
-> 想换其他大模型？编辑 `~/.reasonix/config.toml`，修改 `[[providers]]` 下的模型配置即可切换任何兼容 OpenAI 接口的模型。
+You need to provide an API Key during installation. Get one at [platform.deepseek.com](https://platform.deepseek.com/):
 
-## 6. 前提条件
+1. Register/Login → **API Keys** → Create and copy the Key (shown only once)
+2. New accounts get 5 million free tokens; insufficient balance returns a 429 error
 
-- Linux 操作系统（apt/yum 包管理）
-- root 或 sudo 权限（安装 Node.js 时需要）
+> Want to use a different LLM? Edit `~/.reasonix/config.toml` and modify the provider config under `[[providers]]` to switch to any model compatible with the OpenAI API.
 
-## 7. 配置结构
+## 6. Prerequisites
+
+- Linux OS (apt/yum package manager)
+- root or sudo privileges (required for Node.js installation)
+
+## 7. Configuration Structure
 
 ```
 ~/.config/reasonix-bot/
-├── ecosystem.config.js      PM2 配置（含 DeepSeek Key / 飞书 Secret）
-├── pm2-start-bot.sh         启动脚本
-├── pm2-stop-bot.sh          停止脚本
-└── undeploy.mjs             卸载脚本
+├── ecosystem.config.js      PM2 config (contains DeepSeek Key / Feishu Secret)
+├── pm2-start-bot.sh         Start script
+├── pm2-stop-bot.sh          Stop script
+└── undeploy.mjs             Uninstall script
 
 ~/.reasonix/
-├── config.toml              用户级 Reasonix 配置（含 Bot 设置，安装时与个人配置合并）
-└── config.toml.deploy-bak   安装前备份（卸载时可还原）
+├── config.toml              User-level Reasonix config (includes Bot settings, merged with personal config during install)
+└── config.toml.deploy-bak   Pre-install backup (can be restored during uninstall)
 ```
 
-## 8. 发布新版本
+## 8. Publishing a New Version
 
 ```bash
-npm run release        # 自动 Bump patch
-npm run release:minor  # 次版本
-npm run release:major  # 主版本
-npm run release:dry    # 预览
+npm run release        # Auto bump patch version
+npm run release:minor  # Minor version
+npm run release:major  # Major version
+npm run release:dry    # Dry run (preview)
 ```
 
-## 9. 相关链接
+## 9. Related Links
 
-- [Reasonix 官网](https://reasonix.ai)
-- [飞书开放平台](https://open.feishu.cn/)
+- [Reasonix Official Website](https://reasonix.ai)
+- [Feishu Open Platform](https://open.feishu.cn/)
