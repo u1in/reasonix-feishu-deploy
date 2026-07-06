@@ -316,7 +316,22 @@ async function generateConfig(config, cli = {}) {
     console.log(`  ${yellow('⚠')} 启动/停止脚本复制失败（可忽略）`);
   }
 
-  // 卸载统一使用 npx @u1in/reasonix-feishu-deploy --uninstall
+  // ── 卸载脚本（本地副本，与安装版本绑定） ──
+  const uninstallMjs = `${PACKAGE_SCRIPTS_DIR}/uninstall.mjs`;
+  const uninstallSh = `${CONFIG_DIR}/uninstall.sh`;
+  const uninstallMjsDest = `${CONFIG_DIR}/uninstall.mjs`;
+  try {
+    copyFileSync(uninstallMjs, uninstallMjsDest);
+    writeFileSync(uninstallSh, `#!/usr/bin/env bash
+set -euo pipefail
+CONFIG_DIR="\$(cd "\$(dirname "\$0")" && pwd)"
+exec node "\$CONFIG_DIR/uninstall.mjs" "\$@" <\$(tty)
+`, 'utf-8');
+    chmodSync(uninstallSh, 0o755);
+    console.log(`  ${green('✓')} 卸载脚本已复制: uninstall.sh`);
+  } catch (e) {
+    console.log(`  ${yellow('⚠')} 卸载脚本复制失败: ${e.message}`);
+  }
 
   // PM2 开机自启
   let startup = false;
@@ -398,7 +413,7 @@ alias rb-stop='bash ${CONFIG_DIR}/pm2-stop-bot.sh'
 alias rb-restart='pm2 restart reasonix-bot'
 alias rb-logs='pm2 logs reasonix-bot'
 alias rb-status='pm2 status'
-alias rb-uninstall='npx @u1in/reasonix-feishu-deploy --uninstall'
+alias rb-uninstall='bash ${CONFIG_DIR}/uninstall.sh'
 ${ALIAS_MARKER_END}
 `;
 }
@@ -466,7 +481,9 @@ function printSummary() {
   console.log(`     ${dim('├──')} .env                 API 密钥`);
   console.log(`     ${dim('├──')} ecosystem.config.js   PM2 配置`);
   console.log(`     ${dim('├──')} pm2-start-bot.sh     启动脚本`);
-  console.log(`     ${dim('└──')} pm2-stop-bot.sh      停止脚本`);
+  console.log(`     ${dim('├──')} pm2-stop-bot.sh      停止脚本`);
+  console.log(`     ${dim('├──')} uninstall.sh         卸载脚本`);
+  console.log(`     ${dim('└──')} uninstall.mjs        卸载程序`);
   console.log();
   console.log(`  ${yellow('═══ ⚠️  安装后不要忘记 ═══')}`);
   console.log();
@@ -483,7 +500,7 @@ function printSummary() {
   console.log(`      pm2 logs reasonix-bot     ${dim('# 日志')}`);
   console.log(`      pm2 restart reasonix-bot  ${dim('# 重启')}`);
   console.log();
-  console.log(`   ④ 卸载: npx @u1in/reasonix-feishu-deploy --uninstall`);
+  console.log(`   ④ 卸载: bash ~/.config/reasonix-bot/uninstall.sh 或 rb-uninstall`);
   console.log();
 }
 
