@@ -13,8 +13,9 @@ ok()    { echo -e "${GREEN}✓${NC}  $*" >&2; }
 warn()  { echo -e "${YELLOW}⚠${NC}  $*" >&2; }
 err()   { echo -e "${RED}✗${NC}  $*" >&2; }
 
-# ── 确定包目录 ──
-SCRIPT_DIR="$(cd "$(dirname "$0")" 2>/dev/null && pwd)"
+# ── 确定包目录（解析软链接，兼容 npx 方式运行） ──
+SCRIPT_PATH="$(readlink -f "$0")"
+SCRIPT_DIR="$(dirname "$SCRIPT_PATH")"
 PACKAGE_DIR="$(dirname "$SCRIPT_DIR")"
 
 # ── 处理 --uninstall 标志 ──

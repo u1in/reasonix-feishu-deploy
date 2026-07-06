@@ -1,10 +1,10 @@
 {
   "name": "@u1in/reasonix-feishu-deploy",
   "version": "0.1.0",
-  "description": "🤖 Reasonix 飞书 Bot — 一键部署套件，在任何 Linux 机器上快速部署 AI Bot 接入飞书",
+  "description": "🤖 一键部署 Reasonix AI Bot 接入飞书",
   "type": "module",
   "bin": {
-    "reasonix-feishu-deploy": "./scripts/cli.sh"
+    "reasonix-feishu-deploy": "scripts/cli.sh"
   },
   "scripts": {
     "setup": "node scripts/setup.mjs",
@@ -36,6 +36,7 @@
   "homepage": "https://github.com/u1in/reasonix-feishu-deploy#readme",
   "author": {
     "name": "u1in",
+    "email": "u1in@qq.com",
     "url": "https://github.com/u1in"
   },
   "keywords": [
