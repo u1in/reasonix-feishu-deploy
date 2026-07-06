@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [0.1.5](https://github.com/u1in/reasonix-feishu-deploy/compare/v0.1.4...v0.1.5) (2026-07-06)
+
+
+### 🐛 修复
+
+* 移除 ecosystem 文件的 existsSync 守卫，确保每次 setup 都重新生成正确的 cwd ([8961f24](https://github.com/u1in/reasonix-feishu-deploy/commit/8961f24529f0eea916ece5fa5dff23f45b67725a))
+
 ## [0.1.4](https://github.com/u1in/reasonix-feishu-deploy/compare/v0.1.3...v0.1.4) (2026-07-06)
 
 
