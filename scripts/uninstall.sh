@@ -19,14 +19,20 @@ find_package_dir() {
   local script_dir
   script_dir="$(cd "$(dirname "$0")" 2>/dev/null && pwd 2>/dev/null || echo '')"
   local pkg_dir="$script_dir"
+  # 从 git 仓库运行时（scripts/ 子目录）
   if [[ "$(basename "$pkg_dir" 2>/dev/null)" == "scripts" ]]; then
     pkg_dir="$(dirname "$pkg_dir")"
   fi
   if [[ -f "$pkg_dir/scripts/uninstall.mjs" && -f "$pkg_dir/config/reasonix.toml" ]]; then
     echo "$pkg_dir"
-  else
-    echo ""
+    return
   fi
+  # 从 ~/.config/reasonix-bot/ 运行时（uninstall.mjs 在脚本同目录）
+  if [[ -f "$script_dir/uninstall.mjs" ]]; then
+    echo "$script_dir"
+    return
+  fi
+  echo ""
 }
 
 # ── GitHub 代理（国内加速） ──

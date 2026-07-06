@@ -330,6 +330,15 @@ async function generateConfig(config) {
     console.log(`  ${yellow('⚠')} 启动/停止脚本复制失败（可忽略）`);
   }
 
+  try {
+    copyFileSync(`${PACKAGE_SCRIPTS_DIR}/uninstall.sh`, `${CONFIG_DIR}/uninstall.sh`);
+    copyFileSync(`${PACKAGE_SCRIPTS_DIR}/uninstall.mjs`, `${CONFIG_DIR}/uninstall.mjs`);
+    chmodSync(`${CONFIG_DIR}/uninstall.sh`, 0o755);
+    console.log(`  ${green('✓')} 卸载脚本已复制`);
+  } catch {
+    console.log(`  ${yellow('⚠')} 卸载脚本复制失败（可忽略）`);
+  }
+
   // PM2 开机自启
   const { startup } = await prompts({
     type: 'confirm',
@@ -385,7 +394,8 @@ function printSummary() {
   console.log(`     ${dim('├──')} .env                 API 密钥`);
   console.log(`     ${dim('├──')} ecosystem.config.js   PM2 配置`);
   console.log(`     ${dim('├──')} pm2-start-bot.sh     启动脚本`);
-  console.log(`     ${dim('└──')} pm2-stop-bot.sh      停止脚本`);
+  console.log(`     ${dim('├──')} pm2-stop-bot.sh      停止脚本`);
+  console.log(`     ${dim('└──')} uninstall.sh         卸载脚本`);
   console.log();
   console.log(`  ${yellow('═══ ⚠️  安装后不要忘记 ═══')}`);
   console.log();
