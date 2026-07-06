@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [0.1.4](https://github.com/u1in/reasonix-feishu-deploy/compare/v0.1.3...v0.1.4) (2026-07-06)
+
+
+### 🐛 修复
+
+* bot config not loaded due to wrong cwd in PM2 ecosystem ([f63138a](https://github.com/u1in/reasonix-feishu-deploy/commit/f63138a3965e2fd46773a789028c2b43a445a773))
+
 ## [0.1.3](https://github.com/u1in/reasonix-feishu-deploy/compare/v0.1.2...v0.1.3) (2026-07-06)
 
 
