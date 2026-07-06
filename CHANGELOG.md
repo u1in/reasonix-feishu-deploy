@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [0.4.1](https://github.com/u1in/reasonix-feishu-deploy/compare/v0.4.0...v0.4.1) (2026-07-06)
+
+
+### ♻️ 重构
+
+* simplify prompts, remove --yes mode, fix bugs ([502fb06](https://github.com/u1in/reasonix-feishu-deploy/commit/502fb06f58a80f846837ac17d05926354d5a7964))
+
+
+### 🔧 杂项
+
+* rename setup.mjs→deploy.mjs, uninstall.mjs→undeploy.mjs ([c9f62dd](https://github.com/u1in/reasonix-feishu-deploy/commit/c9f62dd36d3941217feb40bdb7ba8828b91a0376))
+
 ## [0.4.0](https://github.com/u1in/reasonix-feishu-deploy/compare/v0.3.2...v0.4.0) (2026-07-06)
 
 
