@@ -381,6 +381,86 @@ async function startBot() {
   }
 }
 
+// ── Shell 别名 ──
+function detectShellConfig() {
+  const shell = (process.env.SHELL || '').toLowerCase();
+  const zdotdir = process.env.ZDOTDIR || HOME;
+
+  if (shell.includes('zsh')) {
+    return `${zdotdir}/.zshrc`;
+  }
+  if (shell.includes('bash')) {
+    // bash 优先使用 .bashrc，如果不存在且 .bash_profile 存在则用后者
+    const bashrc = `${HOME}/.bashrc`;
+    const bashProfile = `${HOME}/.bash_profile`;
+    if (existsSync(bashProfile) && !existsSync(bashrc)) {
+      return bashProfile;
+    }
+    return bashrc;
+  }
+  return '';
+}
+
+const ALIAS_MARKER_START = '# >>> reasonix-bot';
+const ALIAS_MARKER_END   = '# <<< reasonix-bot';
+
+function getAliasBlock() {
+  return `
+${ALIAS_MARKER_START}
+alias rb-start='bash ${CONFIG_DIR}/pm2-start-bot.sh'
+alias rb-stop='bash ${CONFIG_DIR}/pm2-stop-bot.sh'
+alias rb-restart='pm2 restart reasonix-bot'
+alias rb-logs='pm2 logs reasonix-bot'
+alias rb-status='pm2 status'
+alias rb-uninstall='bash ${CONFIG_DIR}/uninstall.sh'
+${ALIAS_MARKER_END}
+`;
+}
+
+async function setupShellAliases() {
+  title('Shell 别名');
+
+  const { addAliases } = await prompts({
+    type: 'confirm',
+    name: 'addAliases',
+    message: '是否添加 rb-* 快捷命令到 Shell 配置？（rb-start / rb-stop / rb-logs 等）',
+    hint: '添加后重开终端或 source 即可使用',
+    initial: true,
+  });
+
+  if (!addAliases) {
+    console.log(`  ${dim('─')} 跳过`);
+    return;
+  }
+
+  const configFile = detectShellConfig();
+  if (!configFile) {
+    console.log(`  ${yellow('⚠')} 未能识别的 Shell（$SHELL=${process.env.SHELL || '未设置'}），请手动添加别名`);
+    console.log(`     编辑 ~/.zshrc 或 ~/.bashrc，加入:${getAliasBlock()}`);
+    return;
+  }
+
+  let content = '';
+  if (existsSync(configFile)) {
+    content = readFileSync(configFile, 'utf-8');
+    if (content.includes(ALIAS_MARKER_START)) {
+      console.log(`  ${green('✓')} 别名已存在: ${configFile.replace(HOME, '~')}`);
+      return;
+    }
+  }
+
+  const block = getAliasBlock();
+  try {
+    mkdirSync(dirname(configFile), { recursive: true });
+    appendFileSync(configFile, block, 'utf-8');
+    console.log(`  ${green('✓')} 别名已添加到: ${configFile.replace(HOME, '~')}`);
+    console.log(`     ${dim('生效请执行:')} source ${configFile.replace(HOME, '~')}`);
+  } catch (e) {
+    console.log(`  ${yellow('⚠')} 写入失败: ${e.message}`);
+    console.log(`     请手动加入以下内容到 ${configFile.replace(HOME, '~')}:${block}`);
+  }
+}
+
 // ── 完成 ──
 function printSummary() {
   console.log(`\n${green('  ╭──────────────────────────────────────────────╮')}`);
@@ -441,10 +521,13 @@ async function main() {
   // 4. 生成配置
   await generateConfig(config);
 
-  // 5. 启动
+  // 5. Shell 别名
+  await setupShellAliases();
+
+  // 6. 启动
   await startBot();
 
-  // 6. 完成
+  // 7. 完成
   printSummary();
 }
 

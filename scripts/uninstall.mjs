@@ -7,13 +7,48 @@
  *       或者: npm run uninstall (在 reasonix-deploy 包中)
  */
 import prompts from 'prompts';
-import { existsSync, unlinkSync, rmSync, readdirSync } from 'fs';
+import { existsSync, readFileSync, writeFileSync, unlinkSync, rmSync, readdirSync } from 'fs';
 import { homedir } from 'os';
 import { execSync } from 'child_process';
 
 const HOME = homedir();
 const CONFIG_DIR = `${HOME}/.config/reasonix-bot`;
 const REASONIX_DIR = `${HOME}/.reasonix`;
+
+const ALIAS_MARKER_START = '# >>> reasonix-bot';
+const ALIAS_MARKER_END   = '# <<< reasonix-bot';
+
+function detectShellConfig() {
+  const shell = (process.env.SHELL || '').toLowerCase();
+  const zdotdir = process.env.ZDOTDIR || HOME;
+  if (shell.includes('zsh')) return `${zdotdir}/.zshrc`;
+  if (shell.includes('bash')) {
+    const bashrc = `${HOME}/.bashrc`;
+    const bashProfile = `${HOME}/.bash_profile`;
+    if (existsSync(bashProfile) && !existsSync(bashrc)) return bashProfile;
+    return bashrc;
+  }
+  return '';
+}
+
+function hasAliasesInFile(file) {
+  try {
+    return existsSync(file) && readFileSync(file, 'utf-8').includes(ALIAS_MARKER_START);
+  } catch { return false; }
+}
+
+function removeAliasBlock(content) {
+  const lines = content.split('\n');
+  const result = [];
+  let inBlock = false;
+  for (const line of lines) {
+    if (line.trim() === ALIAS_MARKER_START) { inBlock = true; continue; }
+    if (line.trim() === ALIAS_MARKER_END)   { inBlock = false; continue; }
+    if (!inBlock) result.push(line);
+  }
+  // 去掉块前后的多余空行
+  return result.join('\n').replace(/\n{3,}/g, '\n\n').trim() + '\n';
+}
 
 function color(s, c) { return `\x1b[${c}m${s}\x1b[0m`; }
 const green  = s => color(s, 32);
@@ -83,7 +118,14 @@ async function main() {
     console.log(`  ${cyan('•')} PM2: ${dim('未安装')}`);
   }
 
-  console.log();
+  // Shell 别名检测
+  const aliasFile = detectShellConfig();
+  const hasAliases = aliasFile && hasAliasesInFile(aliasFile);
+  if (hasAliases) {
+    console.log(`  ${cyan('•')} Shell 别名 (rb-*): ${green('存在')} (${aliasFile.replace(HOME, '~')})`);
+  } else if (aliasFile) {
+    console.log(`  ${cyan('•')} Shell 别名 (rb-*): ${dim('未安装')}`);
+  }
 
   // ─── 确认卸载 ───
   const { confirmed } = await prompts({
@@ -99,7 +141,7 @@ async function main() {
   }
 
   // ─── 1. 停掉 PM2 进程 ───
-  title('1/5 — 停掉 Bot 进程');
+  title('1/6 — 停掉 Bot 进程');
 
   try {
     execSync('pm2 stop reasonix-bot 2>/dev/null && pm2 delete reasonix-bot 2>/dev/null', { stdio: 'ignore' });
@@ -109,7 +151,7 @@ async function main() {
   }
 
   // ─── 2. 配置文件 ───
-  title('2/5 — 配置文件');
+  title('2/6 — 配置文件');
 
   const configFiles = [
     'config.toml',
@@ -146,7 +188,7 @@ async function main() {
   }
 
   // ─── 3. 会话和记忆数据 ───
-  title('3/5 — 会话与记忆');
+  title('3/6 — 会话与记忆');
 
   if (removeSessions && existsSync(CONFIG_DIR)) {
     const dirsToRemove = [
@@ -168,7 +210,7 @@ async function main() {
   }
 
   // ─── 4. API 密钥 ───
-  title('4/5 — API 密钥');
+  title('4/6 — API 密钥');
 
   const envFile = `${CONFIG_DIR}/.env`;
   if (existsSync(envFile)) {
@@ -189,8 +231,35 @@ async function main() {
     console.log(`  ${dim('─')} .env 不存在，跳过`);
   }
 
-  // ─── 5. 全局 CLI ───
-  title('5/5 — 全局 CLI');
+  // ─── 5. Shell 别名 ───
+  title('5/6 — Shell 别名');
+
+  if (hasAliases) {
+    const { removeAliases } = await prompts({
+      type: 'confirm',
+      name: 'removeAliases',
+      message: `是否移除 rb-* 别名？（从 ${aliasFile.replace(HOME, '~')} 中删除）`,
+      initial: true,
+    }, { onCancel });
+
+    if (removeAliases && aliasFile) {
+      try {
+        const content = readFileSync(aliasFile, 'utf-8');
+        const cleaned = removeAliasBlock(content);
+        writeFileSync(aliasFile, cleaned, 'utf-8');
+        console.log(`  ${green('✓')} 别名已从 ${aliasFile.replace(HOME, '~')} 中移除`);
+      } catch (e) {
+        console.log(`  ${yellow('⚠')} 移除失败: ${e.message}`);
+      }
+    } else {
+      console.log(`  ${dim('─')} 保留别名`);
+    }
+  } else {
+    console.log(`  ${dim('─')} 未发现别名，跳过`);
+  }
+
+  // ─── 6. 全局 CLI ───
+  title('6/6 — 全局 CLI');
 
   const cliActions = [];
 
