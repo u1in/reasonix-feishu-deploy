@@ -16,25 +16,20 @@ import { execSync } from 'child_process';
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const HOME = homedir();
 const CONFIG_DIR = `${HOME}/.config/reasonix-bot`;
-const CONFIG_FILE = `${CONFIG_DIR}/reasonix.toml`;
-const TEMPLATE_FILE = resolve(__dirname, '../config/reasonix.toml');
+const CONFIG_FILE = `${CONFIG_DIR}/config.toml`;
+const TEMPLATE_FILE = resolve(__dirname, '../config/config.toml');
 const PACKAGE_SCRIPTS_DIR = resolve(__dirname, '../scripts');
 
 // ── CLI 参数解析 ──
 function parseArgs() {
   const args = process.argv.slice(2);
-  const cli = { yes: false };
+  const cli = {};
   for (let i = 0; i < args.length; i++) {
     const arg = args[i];
-    if (arg === '--yes' || arg === '-y') { cli.yes = true; continue; }
     if (arg === '--allow-all')  { cli.allowAll = true; continue; }
     if (arg === '--no-allow-all') { cli.allowAll = false; continue; }
     if (arg === '--require-mention') { cli.requireMention = true; continue; }
     if (arg === '--no-require-mention') { cli.requireMention = false; continue; }
-    if (arg === '--startup') { cli.startup = true; continue; }
-    if (arg === '--no-startup') { cli.startup = false; continue; }
-    if (arg === '--start') { cli.start = true; continue; }
-    if (arg === '--no-start') { cli.start = false; continue; }
     if (arg === '--add-aliases') { cli.addAliases = true; continue; }
     if (arg === '--no-add-aliases') { cli.addAliases = false; continue; }
 
@@ -90,11 +85,8 @@ async function ensureEnvironment() {
 
 // ── 步骤 2: 交互式配置收集 ──
 async function collectConfig(cli = {}) {
-  const isQuiet = cli.yes;
-  if (!isQuiet) {
-    title('飞书 Bot 配置');
-    console.log(`  ${dim('用方向键 ↑↓ 选择，回车确认，Ctrl+C 随时取消')}\n`);
-  }
+  title('飞书 Bot 配置');
+  console.log(`  ${dim('用方向键 ↑↓ 选择，回车确认，Ctrl+C 随时取消')}\n`);
 
   const onCancel = () => {
     console.log(`\n  ${yellow('⚠')} 向导已取消`);
@@ -118,46 +110,18 @@ async function collectConfig(cli = {}) {
     console.log(`  ${green('✓')} 飞书 App Secret ${dim('(已配置)')}`);
   }
 
-  // ─── 3-5. 飞书配置确认（安静模式跳过） ───
-  if (!isQuiet) {
-    await prompts({ type: 'confirm', name: 'v', message: '请确认飞书机器人已拥有以下权限:\n  • im:message:readonly\n  • im:message.p2p_msg:readonly\n  \n  👉 https://open.feishu.cn/app → 权限管理 检查\n  确认已添加？', initial: true }, { onCancel });
-    await prompts({ type: 'confirm', name: 'v', message: '请确认飞书机器人的事件订阅方式选择了「长连接(WebSocket)」:\n  \n  👉 https://open.feishu.cn/app → 事件与回调 → 订阅方式 检查\n  确认已选择「通过长连接接收事件」？', initial: true }, { onCancel });
-    await prompts({ type: 'confirm', name: 'v', message: '请确认飞书机器人已添加以下事件:\n  • im.message.receive_v1\n  \n  👉 https://open.feishu.cn/app → 事件与回调 检查\n  确认已添加？', initial: true }, { onCancel });
-  }
+  // ─── 3. 飞书配置检查（一次性确认） ───
+  await prompts({ type: 'confirm', name: 'v', message: '请确认飞书机器人已完成以下三项配置:\n\n  📋 ① 权限已添加:\n     • im:message:readonly\n     • im:message.p2p_msg:readonly\n\n  📋 ② 事件订阅方式选择了「长连接(WebSocket)」:\n     • 请确认订阅方式为「通过长连接接收事件」\n\n  📋 ③ 事件已添加:\n     • im.message.receive_v1\n\n  👉 https://open.feishu.cn/app → 选择你的应用 检查\n  确认以上三项均已配置完成？', initial: true }, { onCancel });
 
-  // ─── 6. 白名单策略 ───
-  let allowAll = true;
-  if (cli.allowAll !== undefined) {
-    allowAll = cli.allowAll;
-  } else {
-    const r = await prompts({ type: 'select', name: 'v', message: '请选择白名单策略', choices: [{ title: '允许所有用户', description: '任何人都可与 Bot 对话，推荐', value: true }, { title: '仅允许指定用户', description: '需要输入飞书用户 Open ID', value: false }], initial: 0 }, { onCancel });
-    allowAll = r.v;
-  }
-  console.log(`  ${green('✓')} 白名单: ${allowAll ? '允许所有用户' : '仅限指定用户'}`);
+  // ─── 4. 安全风险提示 ───
+  let allowAll = cli.allowAll !== undefined ? cli.allowAll : true;
+  let feishuUsers = cli.feishuUsers && cli.feishuUsers.length > 0 ? cli.feishuUsers : ['ou_xxxxxxxxxxxxxxxxxxxxxxxxxxxxx'];
+  let requireMention = cli.requireMention !== undefined ? cli.requireMention : false;
 
-  // ─── 7. 飞书用户 Open ID ───
-  let feishuUsers = ['ou_xxxxxxxxxxxxxxxxxxxxxxxxxxxxx'];
-  if (!allowAll) {
-    if (cli.feishuUsers && cli.feishuUsers.length > 0) {
-      feishuUsers = cli.feishuUsers;
-    } else {
-      const r = await prompts({ type: 'list', name: 'v', message: '请输入允许的飞书用户 Open ID（多个用逗号分隔）', hint: '格式: ou_xxxxxxxxxxxxxxxxxxxxxxxxxxxxx', separator: ',' }, { onCancel });
-      feishuUsers = r.v.map(u => u.trim()).filter(Boolean);
-    }
-    console.log(`  ${green('✓')} 已记录 ${feishuUsers.length} 个用户`);
-  }
+  await prompts({ type: 'confirm', name: 'v', message: '⚠️  安全设置说明\n\n本 Bot 默认允许所有飞书用户使用。\n\n  • 建议在飞书开放平台 → 应用 → 权限管理 中设置「应用使用范围」\n    来控制谁能使用此 Bot，而非在此处配置白名单。\n\n  • 若确实需要使用 Reasonix 内置白名单限制用户（Open ID）\n    或调整群聊 @Bot 回复行为，请安装后手动编辑:\n    ~/.reasonix/config.toml 的 [bot.allowlist] 和 [bot.feishu] 节\n\n  我已了解上述安全建议', initial: true }, { onCancel });
+  console.log(`  ${green('✓')} 安全策略: 允许所有用户（如有白名单需求请安装后修改 ~/.reasonix/config.toml）`);
 
-  // ─── 8. @提及回复 ───
-  let requireMention = true;
-  if (cli.requireMention !== undefined) {
-    requireMention = cli.requireMention;
-  } else {
-    const r = await prompts({ type: 'toggle', name: 'v', message: '群聊中是否需要 @Bot 才回复？', initial: true, active: '需要 @', inactive: '不需要' }, { onCancel });
-    requireMention = r.v;
-  }
-  console.log(`  ${green('✓')} 群聊 @Bot 回复: ${requireMention ? '需要 @' : '不需要'}`);
-
-  // ─── 9. DeepSeek API Key ───
+  // ─── 5. DeepSeek API Key ───
   let deepseekKey = cli.apiKey || '';
   if (!deepseekKey) {
     const r = await prompts({ type: 'password', name: 'v', message: '请输入 DeepSeek API Key', hint: 'https://platform.deepseek.com → API Keys' }, { onCancel });
@@ -268,15 +232,9 @@ async function confirmConfig(config, cli = {}) {
 
   console.log(`  ${cyan('飞书 App ID')}    ${config.appId || dim('(未设置)')}`);
   console.log(`  ${cyan('飞书 App Secret')} ${config.feishuSecret ? dim('(已配置)') : red('(未设置)')}`);
-  console.log(`  ${cyan('白名单')}         ${config.allowAll ? '允许所有用户' : `仅允许 ${config.feishuUsers.length} 个用户`}`);
-  console.log(`  ${cyan('@提及回复')}      ${config.requireMention ? '需要 @Bot' : '不需要'}`);
+  console.log(`  ${cyan('安全策略')}       允许所有用户 ${dim('(白名单/@提及 可在安装后修改 ~/.reasonix/config.toml)')}`);
   console.log(`  ${cyan('DeepSeek Key')}   ${config.deepseekKey ? dim('(已配置)') : red('(未设置)')}`);
   console.log();
-
-  if (cli.yes) {
-    console.log(`  ${green('✓')} 自动确认`);
-    return;
-  }
 
   const { confirmed } = await prompts({
     type: 'confirm',
@@ -296,15 +254,6 @@ async function generateConfig(config, cli = {}) {
   title('生成配置');
 
   mkdirSync(CONFIG_DIR, { recursive: true });
-
-  if (existsSync(CONFIG_FILE)) {
-    if (cli.yes) {
-      console.log(`  ${green('✓')} 覆盖现有配置`);
-    } else {
-      const r = await prompts({ type: 'confirm', name: 'v', message: `~/.config/reasonix-bot/reasonix.toml 已存在，是否覆盖？`, initial: false });
-      if (!r.v) { console.log(`  ${green('✓')} 保留现有配置`); return; }
-    }
-  }
 
   if (!existsSync(TEMPLATE_FILE)) {
     console.log(`  ${red('✗')} 未找到配置模板: ${TEMPLATE_FILE}`);
@@ -349,7 +298,7 @@ async function generateConfig(config, cli = {}) {
 
   // 同时写入项目级配置（保持兼容，方便查看）
   writeFileSync(CONFIG_FILE, configContent, 'utf-8');
-  console.log(`  ${green('✓')} 配置已同步到: ~/.config/reasonix-bot/reasonix.toml`);
+  console.log(`  ${green('✓')} 配置已同步到: ~/.config/reasonix-bot/config.toml`);
 
   // PM2 ecosystem — 每次都重新生成，确保路径等始终正确
   const ecosystemFile = `${CONFIG_DIR}/ecosystem.config.js`;
@@ -390,64 +339,16 @@ async function generateConfig(config, cli = {}) {
   const undeploySh = `${CONFIG_DIR}/undeploy.sh`;
   const undeployMjsDest = `${CONFIG_DIR}/undeploy.mjs`;
   try {
-    copyFileSync(uninstallMjs, uninstallMjsDest);
-    writeFileSync(uninstallSh, `#!/usr/bin/env bash
+    copyFileSync(undeployMjs, undeployMjsDest);
+    writeFileSync(undeploySh, `#!/usr/bin/env bash
 set -euo pipefail
 CONFIG_DIR="\$(cd "\$(dirname "\$0")" && pwd)"
 exec node "\$CONFIG_DIR/undeploy.mjs" "\$@" <\$(tty)
 `, 'utf-8');
-    chmodSync(uninstallSh, 0o755);
+    chmodSync(undeploySh, 0o755);
     console.log(`  ${green('✓')} 卸载脚本已复制: undeploy.sh`);
   } catch (e) {
     console.log(`  ${yellow('⚠')} 卸载脚本复制失败: ${e.message}`);
-  }
-
-  // PM2 开机自启
-  let startup = false;
-  if (cli.startup !== undefined) {
-    startup = cli.startup;
-  } else {
-    const r = await prompts({ type: 'confirm', name: 'v', message: '是否配置 PM2 开机自启？', initial: false });
-    startup = r.v;
-  }
-
-  if (startup) {
-    try {
-      execSync(`pm2 startup systemd -u "${process.env.USER}" --hp "${HOME}" 2>/dev/null || pm2 startup 2>/dev/null || true`, { stdio: 'ignore' });
-      console.log(`  ${green('✓')} PM2 开机自启已配置`);
-    } catch {
-      console.log(`  ${yellow('⚠')} PM2 开机自启配置失败`);
-    }
-  }
-}
-
-// ── 步骤 5: 启动 ──
-async function startBot(cli = {}) {
-  title('启动 Bot');
-
-  let start;
-  if (cli.start !== undefined) {
-    start = cli.start;
-  } else {
-    const r = await prompts({
-      type: 'confirm',
-      name: 'v',
-      message: '是否现在启动 Bot？',
-      initial: true,
-    });
-    start = r.v;
-  }
-
-  if (start) {
-    try {
-      execSync(`bash ${CONFIG_DIR}/pm2-start-bot.sh`, { stdio: 'inherit' });
-      console.log(`\n  ${green('✓')} Bot 已启动！`);
-    } catch {
-      console.log(`\n  ${red('✗')} 启动失败，请检查日志: pm2 logs reasonix-bot`);
-    }
-  } else {
-    console.log(`  ${dim('你可以稍后通过以下命令启动:')}`);
-    console.log(`    pm2 start ${CONFIG_DIR}/ecosystem.config.js`);
   }
 }
 
@@ -506,14 +407,14 @@ async function setupShellAliases(cli = {}) {
 
   if (!addAliases) {
     console.log(`  ${dim('─')} 跳过`);
-    return;
+    return false;
   }
 
   const configFile = detectShellConfig();
   if (!configFile) {
     console.log(`  ${yellow('⚠')} 未能识别的 Shell（$SHELL=${process.env.SHELL || '未设置'}），请手动添加别名`);
     console.log(`     编辑 ~/.zshrc 或 ~/.bashrc，加入:${getAliasBlock()}`);
-    return;
+    return false;
   }
 
   let content = '';
@@ -521,7 +422,7 @@ async function setupShellAliases(cli = {}) {
     content = readFileSync(configFile, 'utf-8');
     if (content.includes(ALIAS_MARKER_START)) {
       console.log(`  ${green('✓')} 别名已存在: ${configFile.replace(HOME, '~')}`);
-      return;
+      return true;
     }
   }
 
@@ -534,11 +435,13 @@ async function setupShellAliases(cli = {}) {
   } catch (e) {
     console.log(`  ${yellow('⚠')} 写入失败: ${e.message}`);
     console.log(`     请手动加入以下内容到 ${configFile.replace(HOME, '~')}:${block}`);
+    return false;
   }
+  return true;
 }
 
 // ── 完成 ──
-function printSummary() {
+function printSummary(hasAliases) {
   console.log(`\n${green('  ╭──────────────────────────────────────────────╮')}`);
   console.log(`${green('  │')}                                              ${green('│')}`);
   console.log(`${green('  │')}   🎉  部署完成！                              ${green('│')}`);
@@ -546,7 +449,7 @@ function printSummary() {
   console.log(`${green('  ╰──────────────────────────────────────────────╯')}`);
   console.log();
   console.log(`  ${cyan('📁')}  ~/.config/reasonix-bot/`);
-  console.log(`     ${dim('├──')} reasonix.toml        项目配置`);
+  console.log(`     ${dim('├──')} config.toml         项目配置`);
   console.log(`     ${dim('├──')} ecosystem.config.js   PM2 配置（含 API 密钥）`);
   console.log(`     ${dim('├──')} pm2-start-bot.sh     启动脚本`);
   console.log(`     ${dim('├──')} pm2-stop-bot.sh      停止脚本`);
@@ -563,16 +466,36 @@ function printSummary() {
   console.log(`      ${dim('-')} 确认订阅方式选了「长连接(WebSocket)」`);
   console.log(`      ${dim('-')} 右上角点「发布」— ${yellow('不发布配置不生效!')}`);
   console.log();
-  console.log(`   ② 查看日志确认连接成功:`);
-  console.log(`      ${dim('$')} pm2 logs reasonix-bot`);
+  console.log(`   ② 启动 Bot:`);
+  if (hasAliases) {
+    console.log(`      ${dim('$')} rb-start`);
+    console.log(`      ${dim('# 或')} pm2 start ~/.config/reasonix-bot/ecosystem.config.js`);
+  } else {
+    console.log(`      ${dim('$')} pm2 start ~/.config/reasonix-bot/ecosystem.config.js`);
+  }
+  console.log();
+  console.log(`   ③ 查看日志确认连接成功:`);
+  if (hasAliases) {
+    console.log(`      ${dim('$')} rb-logs`);
+  } else {
+    console.log(`      ${dim('$')} pm2 logs reasonix-bot`);
+  }
   console.log(`      看到 ${green('feishu sdk websocket connected')} 即为成功`);
   console.log();
-  console.log(`   ③ 常用命令:`);
-  console.log(`      pm2 status               ${dim('# 状态')}`);
-  console.log(`      pm2 logs reasonix-bot     ${dim('# 日志')}`);
-  console.log(`      pm2 restart reasonix-bot  ${dim('# 重启')}`);
-  console.log();
-  console.log(`   ④ 卸载: bash ~/.config/reasonix-bot/undeploy.sh 或 rb-undeploy`);
+  console.log(`   ④ 常用命令:`);
+  if (hasAliases) {
+    console.log(`      rb-status          ${dim('# 状态')}`);
+    console.log(`      rb-logs            ${dim('# 日志')}`);
+    console.log(`      rb-restart         ${dim('# 重启')}`);
+    console.log(`      rb-stop            ${dim('# 停止')}`);
+    console.log(`      rb-undeploy        ${dim('# 卸载')}`);
+  } else {
+    console.log(`      pm2 status               ${dim('# 状态')}`);
+    console.log(`      pm2 logs reasonix-bot     ${dim('# 日志')}`);
+    console.log(`      pm2 restart reasonix-bot  ${dim('# 重启')}`);
+    console.log(`      pm2 stop reasonix-bot     ${dim('# 停止')}`);
+    console.log(`      bash ~/.config/reasonix-bot/undeploy.sh  ${dim('# 卸载')}`);
+  }
   console.log();
 }
 
@@ -582,19 +505,16 @@ function printSummary() {
 
 async function main() {
   const cli = parseArgs();
-  const isQuiet = cli.yes;
 
-  if (!isQuiet) {
-    console.clear();
-    console.log(`\n${green('  ╭──────────────────────────────────────────────╮')}`);
-    console.log(`${green('  │')}                                              ${green('│')}`);
-    console.log(`${green('  │')}   🤖  Reasonix 飞书 Bot — 部署向导          ${green('│')}`);
-    console.log(`${green('  │')}                                              ${green('│')}`);
-    console.log(`${green('  │')}   用方向键 ↑↓ 选择，回车确认                 ${green('│')}`);
-    console.log(`${green('  │')}                                              ${green('│')}`);
-    console.log(`${green('  ╰──────────────────────────────────────────────╯')}`);
-    console.log();
-  }
+  console.clear();
+  console.log(`\n${green('  ╭──────────────────────────────────────────────╮')}`);
+  console.log(`${green('  │')}                                              ${green('│')}`);
+  console.log(`${green('  │')}   🤖  Reasonix 飞书 Bot — 部署向导          ${green('│')}`);
+  console.log(`${green('  │')}                                              ${green('│')}`);
+  console.log(`${green('  │')}   用方向键 ↑↓ 选择，回车确认                 ${green('│')}`);
+  console.log(`${green('  │')}                                              ${green('│')}`);
+  console.log(`${green('  ╰──────────────────────────────────────────────╯')}`);
+  console.log();
 
   // 1. 环境准备
   await ensureEnvironment();
@@ -609,13 +529,10 @@ async function main() {
   await generateConfig(config, cli);
 
   // 5. Shell 别名
-  await setupShellAliases(cli);
+  const hasAliases = await setupShellAliases(cli);
 
-  // 6. 启动
-  await startBot(cli);
-
-  // 7. 完成
-  printSummary();
+  // 6. 完成
+  printSummary(hasAliases);
 }
 
 main().catch(e => {

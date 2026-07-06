@@ -49,7 +49,7 @@ if [ "${UNDEPLOY:-0}" = "1" ]; then
 fi
 
 # ── 确认本地文件完整（npx 模式下应有全部文件） ──
-if [ ! -f "$SCRIPT_DIR/deploy.mjs" ] || [ ! -f "$PACKAGE_DIR/config/reasonix.toml" ]; then
+if [ ! -f "$SCRIPT_DIR/deploy.mjs" ] || [ ! -f "$PACKAGE_DIR/config/config.toml" ]; then
   err "未找到安装文件，请通过 npx @u1in/reasonix-feishu-deploy 运行"
   exit 1
 fi
