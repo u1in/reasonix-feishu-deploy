@@ -146,7 +146,7 @@ info "启动交互式卸载向导..."
 echo ""
 
 if [ -f "$UNINSTALL_SCRIPT" ]; then
-  node "$UNINSTALL_SCRIPT" </dev/tty
+  node "$UNINSTALL_SCRIPT" "$@" </dev/tty
 else
   err "未找到卸载脚本: $UNINSTALL_SCRIPT"
   err "请确认仓库完整后再试"

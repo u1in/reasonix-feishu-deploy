@@ -64,7 +64,19 @@ reasonix-feishu-deploy/
 
 安装脚本自动调用 `setup.mjs` 交互式向导完成所有配置。
 
+CLI 参数也可直接传给 `install.sh`，会自动透传给 `setup.mjs`：
+
+```bash
+# 本地运行传参
+bash scripts/install.sh --app-id=cli_a5f8d2e1 --yes
+
+# 远程一键安装也可传参（需要 bash -s 语法）
+curl -fsSL https://raw.githubusercontent.com/u1in/reasonix-feishu-deploy/main/scripts/install.sh | bash -s -- --app-id=cli_a5f8d2e1 --yes
+```
+
 ## setup.mjs CLI 参数
+
+`setup.mjs` 支持命令行参数传递配置值，无需交互输入，适合自动化安装：
 
 `setup.mjs` 支持命令行参数传递配置值，无需交互输入，适合自动化安装：
 
