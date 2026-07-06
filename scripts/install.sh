@@ -162,7 +162,7 @@ info "启动交互式配置向导..."
 echo ""
 
 if [ -f "$SETUP_SCRIPT" ]; then
-  node "$SETUP_SCRIPT"
+  node "$SETUP_SCRIPT" </dev/tty
 else
   err "未找到向导脚本: $SETUP_SCRIPT"
   err "请确认仓库完整后再试"
