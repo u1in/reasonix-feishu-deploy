@@ -1,0 +1,16 @@
+{
+  "types": [
+    { "type": "feat", "section": "🚀 新功能" },
+    { "type": "fix", "section": "🐛 修复" },
+    { "type": "perf", "section": "⚡ 性能优化" },
+    { "type": "refactor", "section": "♻️ 重构" },
+    { "type": "docs", "section": "📝 文档" },
+    { "type": "style", "section": "🎨 样式" },
+    { "type": "test", "section": "✅ 测试" },
+    { "type": "build", "section": "📦 构建/依赖" },
+    { "type": "ci", "section": "👷 CI" },
+    { "type": "chore", "section": "🔧 杂项" }
+  ],
+  "releaseCommitMessageFormat": "chore(release): {{currentTag}} [skip ci]",
+  "issueUrlFormat": "{{host}}/{{owner}}/{{repository}}/issues/{{id}}"
+}

@@ -11,7 +11,11 @@
     "uninstall": "node scripts/uninstall.mjs",
     "install": "bash scripts/cli.sh",
     "start": "bash scripts/pm2-start-bot.sh",
-    "stop": "bash scripts/pm2-stop-bot.sh"
+    "stop": "bash scripts/pm2-stop-bot.sh",
+    "release": "commit-and-tag-version",
+    "release:minor": "commit-and-tag-version --release-as minor",
+    "release:major": "commit-and-tag-version --release-as major",
+    "release:dry": "commit-and-tag-version --dry-run"
   },
   "dependencies": {
     "prompts": "^2.4.2"
@@ -49,5 +53,8 @@
     "coding-agent",
     "im-bot"
   ],
-  "license": "MIT"
+  "license": "MIT",
+  "devDependencies": {
+    "commit-and-tag-version": "^12.7.3"
+  }
 }
