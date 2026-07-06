@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [0.4.4](https://github.com/u1in/reasonix-feishu-deploy/compare/v0.4.3...v0.4.4) (2026-07-06)
+
+
+### 📝 文档
+
+* update README to match current implementation ([b7178e2](https://github.com/u1in/reasonix-feishu-deploy/commit/b7178e26623bea331f56bd1ede196fc888c75810))
+
 ## [0.4.3](https://github.com/u1in/reasonix-feishu-deploy/compare/v0.4.2...v0.4.3) (2026-07-06)
 
 
