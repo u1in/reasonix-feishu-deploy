@@ -247,11 +247,38 @@ async function generateConfig(config, cli = {}) {
   writeFileSync(CONFIG_FILE, configContent, 'utf-8');
   console.log(`  ${green('✓')} 配置文件已生成: ~/.config/reasonix-bot/reasonix.toml`);
 
+  // ── 预创建 $REASONIX_HOME/config.toml 守卫文件 ──
+  // Reasonix 的 loadBotCommandConfig() (internal/cli/bot.go:511-528) 在
+  // config.Load() 完成用户+项目级配置合并后，会重新加载用户级配置并用其
+  // [bot] 段完全覆盖合并后的 cfg.Bot。同时，userConfigLoadPath() 在
+  // $REASONIX_HOME/config.toml 不存在时会回退到 ~/.reasonix/config.toml（用户本地配置）。
+  //
+  // 因此需要预创建 $REASONIX_HOME/config.toml，内容与项目级 reasonix.toml
+  // 的 [bot] 段一致，以同时阻断这两条泄漏路径。
+  const REASONIX_HOME_DIR = `${CONFIG_DIR}/.reasonix`;
+  const REASONIX_HOME_CONFIG = `${REASONIX_HOME_DIR}/config.toml`;
+  mkdirSync(REASONIX_HOME_DIR, { recursive: true });
+
+  // 从已替换完成的 configContent 中提取 [bot] 及其所有子段 ([bot.xxx])
+  const lines = configContent.split('\n');
+  const botStartIdx = lines.findIndex(l => l.startsWith('[bot]'));
+  if (botStartIdx === -1) {
+    console.warn(`  ${yellow('⚠')} 配置模板缺少 [bot] 段，跳过守卫文件创建`);
+  } else {
+    const nextSectionIdx = lines.findIndex((l, i) => i > botStartIdx && /^\[(?!bot\.)/.test(l));
+    const botLines = nextSectionIdx > botStartIdx
+      ? lines.slice(botStartIdx, nextSectionIdx)
+      : lines.slice(botStartIdx);
+    const guardContent = botLines.join('\n') + '\n';
+    writeFileSync(REASONIX_HOME_CONFIG, guardContent, 'utf-8');
+    console.log(`  ${green('✓')} REASONIX_HOME 守卫已创建: ~/.config/reasonix-bot/.reasonix/config.toml`);
+  }
+
   // ── 将 PM2 进程的 cwd 设为 CONFIG_DIR，使 reasonix 的 config.Load()
   // ── (LoadForRoot(".")) 能加载 ~/.config/reasonix-bot/reasonix.toml
-  // ── 作为项目级配置。⚠️ 同时必须设置 env.REASONIX_HOME
-  // ── 阻止 reasonix 的 loadBotCommandConfig() 回读 ~/.reasonix/config.toml
-  // ── 来覆盖项目级 [bot] enabled = true（见 internal/cli/bot.go:511-528） ──
+  // ── 作为项目级配置。同时设置 env.REASONIX_HOME 指向已预创建守卫文件的
+  // ── .reasonix/ 目录，阻断 loadBotCommandConfig() 回读 ~/.reasonix/config.toml
+  // ── 来覆盖项目级 [bot] enabled = true（见 internal/cli/bot.go:511-528）。 ──
 
   // PM2 ecosystem — 每次都重新生成，确保 cwd/reasonix 路径等始终正确
   const ecosystemFile = `${CONFIG_DIR}/ecosystem.config.js`;
@@ -449,8 +476,9 @@ function printSummary() {
   console.log(`${green('  ╰──────────────────────────────────────────────╯')}`);
   console.log();
   console.log(`  ${cyan('📁')}  ~/.config/reasonix-bot/`);
-  console.log(`     ${dim('├──')} reasonix.toml        配置文件`);
+  console.log(`     ${dim('├──')} reasonix.toml        项目配置`);
   console.log(`     ${dim('├──')} ecosystem.config.js   PM2 配置（含 API 密钥）`);
+  console.log(`     ${dim('├──')} .reasonix/           运行时隔离目录（自动管理）`);
   console.log(`     ${dim('├──')} pm2-start-bot.sh     启动脚本`);
   console.log(`     ${dim('├──')} pm2-stop-bot.sh      停止脚本`);
   console.log(`     ${dim('├──')} uninstall.sh         卸载脚本`);

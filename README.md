@@ -28,8 +28,8 @@ npx @u1in/reasonix-feishu-deploy \
 | 参数 | 说明 |
 |------|------|
 | `--app-id <id>` | 飞书 App ID |
-| `--app-secret <secret>` | 飞书 App Secret（自动写入 .env） |
-| `--api-key <key>` | DeepSeek API Key（自动写入 .env） |
+| `--app-secret <secret>` | 飞书 App Secret（自动写入 PM2 配置） |
+| `--api-key <key>` | DeepSeek API Key（自动写入 PM2 配置） |
 | `--allow-all` / `--no-allow-all` | 白名单策略（默认允许所有人） |
 | `--require-mention` / `--no-require-mention` | 群聊是否需要 @Bot 回复 |
 | `--users <id1,id2,...>` | 指定允许的飞书用户 Open ID |
@@ -83,8 +83,8 @@ pm2 start reasonix-bot        # 启动
 ### 修改配置
 
 ```bash
-vim ~/.config/reasonix-bot/reasonix.toml   # Reasonix 配置
-vim ~/.config/reasonix-bot/.env            # API 密钥
+vim ~/.config/reasonix-bot/reasonix.toml   # Bot 配置（白名单、通道、模型等）
+vim ~/.config/reasonix-bot/ecosystem.config.js  # API 密钥（重启后生效）
 # 改完后重启: pm2 restart reasonix-bot
 ```
 

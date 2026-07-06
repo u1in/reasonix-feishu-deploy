@@ -33,7 +33,6 @@ import { execSync } from 'child_process';
 
 const HOME = homedir();
 const CONFIG_DIR = `${HOME}/.config/reasonix-bot`;
-const REASONIX_DIR = `${HOME}/.reasonix`;
 
 const ALIAS_MARKER_START = '# >>> reasonix-bot';
 const ALIAS_MARKER_END   = '# <<< reasonix-bot';
@@ -243,6 +242,11 @@ async function main() {
     for (const file of configFiles) {
       const fp = `${CONFIG_DIR}/${file}`;
       try { unlinkSync(fp); console.log(`  ${green('✓')} 已删除: ${file}`); } catch { /* 不存在 */ }
+    }
+    // 删除 .reasonix/ 下的守卫文件 config.toml
+    const guardFile = `${CONFIG_DIR}/.reasonix/config.toml`;
+    if (existsSync(guardFile)) {
+      try { unlinkSync(guardFile); console.log(`  ${green('✓')} 已删除: .reasonix/config.toml`); } catch {}
     }
     console.log(`  ${dim('─')} 配置文件已清理`);
   } else {
