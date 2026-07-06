@@ -155,7 +155,7 @@ auto_plan   = "off"
 
 # Memory v5 执行编译器（缓存失败记录避免重复犯错）
 # 可选项: { enabled = true } | { enabled = false }
-memory_compiler = { enabled = true }
+memory_compiler = { enabled = false }
 
 # 推理语言（AI 的思考过程语言）
 # 可选项: "auto"（自动检测）| "zh" | "en"
