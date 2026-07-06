@@ -4,31 +4,11 @@
 
 ## 快速开始
 
-### 方式一：npx 一键安装（推荐）
-
 ```bash
 npx @u1in/reasonix-feishu-deploy
 ```
 
 安装向导会自动完成：环境检查 → 密钥录入 → 配置文件生成 → PM2 启动。
-
-### 方式二：本地运行（克隆仓库后）
-
-```bash
-bash scripts/install.sh
-```
-
-### 方式四：远程 curl 安装（无需克隆仓库）
-
-```bash
-curl -fsSL https://raw.githubusercontent.com/u1in/reasonix-feishu-deploy/main/scripts/install.sh | bash
-```
-
-### 方式五：国内加速安装（ghproxy 代理）
-
-```bash
-curl -fsSL https://ghproxy.net/https://raw.githubusercontent.com/u1in/reasonix-feishu-deploy/main/scripts/install.sh | bash
-```
 
 安装过程中会提示输入以下密钥（也可安装后修改 `~/.config/reasonix-bot/.env`）：
 
@@ -72,14 +52,10 @@ reasonix-feishu-deploy/
 
 安装脚本自动调用 `setup.mjs` 交互式向导完成所有配置。
 
-CLI 参数也可直接传给 `install.sh`，会自动透传给 `setup.mjs`：
+CLI 参数也可直接传给 `npx`，会自动透传给安装向导：
 
 ```bash
-# 本地运行传参
-bash scripts/install.sh --app-id=cli_a5f8d2e1 --yes
-
-# 远程一键安装也可传参（需要 bash -s 语法）
-curl -fsSL https://raw.githubusercontent.com/u1in/reasonix-feishu-deploy/main/scripts/install.sh | bash -s -- --app-id=cli_a5f8d2e1 --yes
+npx @u1in/reasonix-feishu-deploy --app-id=cli_a5f8d2e1 --yes
 ```
 
 ## setup.mjs CLI 参数
@@ -190,14 +166,11 @@ pm2 restart reasonix-bot
 ## 卸载
 
 ```bash
-# 远程一键卸载
-curl -fsSL https://raw.githubusercontent.com/u1in/reasonix-feishu-deploy/main/scripts/uninstall.sh | bash
+# 通过 rb-uninstall 别名（安装时自动配置）
+bash ~/.config/reasonix-bot/uninstall.sh
 
 # 或从项目目录运行
 bash scripts/uninstall.sh
-
-# 或通过 npm script
-npm run uninstall
 ```
 
 卸载脚本会清理：PM2 进程、`~/.config/reasonix-bot/` 目录、Shell 别名、可选的 reasonix CLI 和 PM2 全局包。
