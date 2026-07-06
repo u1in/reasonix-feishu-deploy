@@ -13,6 +13,7 @@ import { execSync } from 'child_process';
 
 const HOME = homedir();
 const CONFIG_DIR = `${HOME}/.config/reasonix-bot`;
+const REASONIX_DIR = `${HOME}/.reasonix`;
 
 function color(s, c) { return `\x1b[${c}m${s}\x1b[0m`; }
 const green  = s => color(s, 32);
