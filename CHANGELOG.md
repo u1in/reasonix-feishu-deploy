@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [0.2.1](https://github.com/u1in/reasonix-feishu-deploy/compare/v0.2.0...v0.2.1) (2026-07-06)
+
+
+### 🐛 修复
+
+* 设置 REASONIX_HOME 阻止用户级配置覆盖 bot 配置 ([8bf667c](https://github.com/u1in/reasonix-feishu-deploy/commit/8bf667c1fe720fdcd2bc9aedc77341c9a872bd74))
+
 ## [0.2.0](https://github.com/u1in/reasonix-feishu-deploy/compare/v0.1.8...v0.2.0) (2026-07-06)
 
 
