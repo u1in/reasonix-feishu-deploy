@@ -95,13 +95,6 @@ function saveEnv(varName, value) {
 async function ensureEnvironment() {
   title('环境准备');
 
-  if (!process.version) {
-    console.log(`  ${yellow('⚠')} 未检测到 Node.js，请先安装 Node.js >= 18`);
-    console.log('    推荐使用 nvm: curl -fsSL https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.4/install.sh | bash');
-    process.exit(1);
-  }
-  console.log(`  ${green('✓')} Node.js ${process.version}`);
-
   try {
     execSync('which reasonix', { stdio: 'ignore' });
     const ver = execSync('reasonix version 2>/dev/null || echo ""', { encoding: 'utf-8' }).trim();
@@ -325,14 +318,7 @@ async function generateConfig(config, cli = {}) {
     console.log(`  ${yellow('⚠')} 启动/停止脚本复制失败（可忽略）`);
   }
 
-  try {
-    copyFileSync(`${PACKAGE_SCRIPTS_DIR}/uninstall.sh`, `${CONFIG_DIR}/uninstall.sh`);
-    copyFileSync(`${PACKAGE_SCRIPTS_DIR}/uninstall.mjs`, `${CONFIG_DIR}/uninstall.mjs`);
-    chmodSync(`${CONFIG_DIR}/uninstall.sh`, 0o755);
-    console.log(`  ${green('✓')} 卸载脚本已复制`);
-  } catch {
-    console.log(`  ${yellow('⚠')} 卸载脚本复制失败（可忽略）`);
-  }
+  // 卸载统一使用 npx @u1in/reasonix-feishu-deploy --uninstall
 
   // PM2 开机自启
   let startup = false;
@@ -414,7 +400,7 @@ alias rb-stop='bash ${CONFIG_DIR}/pm2-stop-bot.sh'
 alias rb-restart='pm2 restart reasonix-bot'
 alias rb-logs='pm2 logs reasonix-bot'
 alias rb-status='pm2 status'
-alias rb-uninstall='bash ${CONFIG_DIR}/uninstall.sh'
+alias rb-uninstall='npx @u1in/reasonix-feishu-deploy --uninstall'
 ${ALIAS_MARKER_END}
 `;
 }
@@ -482,8 +468,7 @@ function printSummary() {
   console.log(`     ${dim('├──')} .env                 API 密钥`);
   console.log(`     ${dim('├──')} ecosystem.config.js   PM2 配置`);
   console.log(`     ${dim('├──')} pm2-start-bot.sh     启动脚本`);
-  console.log(`     ${dim('├──')} pm2-stop-bot.sh      停止脚本`);
-  console.log(`     ${dim('└──')} uninstall.sh         卸载脚本`);
+  console.log(`     ${dim('└──')} pm2-stop-bot.sh      停止脚本`);
   console.log();
   console.log(`  ${yellow('═══ ⚠️  安装后不要忘记 ═══')}`);
   console.log();
@@ -499,6 +484,8 @@ function printSummary() {
   console.log(`      pm2 status               ${dim('# 状态')}`);
   console.log(`      pm2 logs reasonix-bot     ${dim('# 日志')}`);
   console.log(`      pm2 restart reasonix-bot  ${dim('# 重启')}`);
+  console.log();
+  console.log(`   ④ 卸载: npx @u1in/reasonix-feishu-deploy --uninstall`);
   console.log();
 }
 

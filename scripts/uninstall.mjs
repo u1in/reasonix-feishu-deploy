@@ -3,8 +3,8 @@
  * Reasonix 飞书 Bot — 卸载还原脚本
  * 还原 deploy 所做的所有修改，支持选择性保留数据。
  *
- * 用法: node uninstall.mjs
- *       或者: npm run uninstall (在 reasonix-deploy 包中)
+ * 推荐用法: npx @u1in/reasonix-feishu-deploy --uninstall
+ * 也可直接: node uninstall.mjs
  */
 import { createRequire } from 'module';
 const _require = createRequire(import.meta.url);
@@ -15,7 +15,15 @@ try {
 } catch {
   console.log('正在安装 prompts 依赖...');
   const { execSync } = await import('child_process');
-  execSync('npm install -g prompts 2>/dev/null', { stdio: 'inherit' });
+  // 优先安装到包本地（npx 缓存可能只读，失败则装到全局）
+  try {
+    const { fileURLToPath } = await import('url');
+    const { resolve, dirname } = await import('path');
+    const pkgDir = resolve(dirname(fileURLToPath(import.meta.url)), '..');
+    execSync('npm install --no-save prompts 2>/dev/null', { cwd: pkgDir, stdio: 'inherit' });
+  } catch {
+    execSync('npm install -g prompts 2>/dev/null', { stdio: 'inherit' });
+  }
   prompts = _require('prompts');
 }
 

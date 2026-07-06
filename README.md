@@ -24,9 +24,8 @@ reasonix-feishu-deploy/
 ├── package.json              # npm 包元信息
 ├── README.md                 # 本文件
 ├── scripts/
-│   ├── install.sh            # 🚀 一键安装脚本（入口）
+│   ├── cli.sh               # 🚀 CLI 入口（npx 执行，安装/卸载路由）
 │   ├── setup.mjs             # 交互式 Node.js 配置向导
-│   ├── uninstall.sh          # 🗑️ 一键卸载脚本（入口）
 │   ├── uninstall.mjs         # 交互式卸载向导
 │   ├── pm2-start-bot.sh      # PM2 启动脚本
 │   └── pm2-stop-bot.sh       # PM2 停止脚本
@@ -35,11 +34,9 @@ reasonix-feishu-deploy/
     └── apikey.env.example    # API 密钥示例文件
 ```
 
-## install.sh 做了什么
+## 安装流程
 
-远程模式下（`curl | bash`）会自动 git clone 仓库到临时目录，退出后自动清理，无需手动克隆。
-
-安装流程：
+只需运行 `npx @u1in/reasonix-feishu-deploy`，安装脚本会自动完成以下步骤：
 
 | 步骤 | 说明 |
 |------|------|
@@ -59,8 +56,6 @@ npx @u1in/reasonix-feishu-deploy --app-id=cli_a5f8d2e1 --yes
 ```
 
 ## setup.mjs CLI 参数
-
-`setup.mjs` 支持命令行参数传递配置值，无需交互输入，适合自动化安装：
 
 `setup.mjs` 支持命令行参数传递配置值，无需交互输入，适合自动化安装：
 
@@ -85,7 +80,16 @@ node scripts/setup.mjs \
 | `--startup` / `--no-startup` | PM2 开机自启 |
 | `--start` / `--no-start` | 安装后是否立即启动 Bot |
 | `--add-aliases` / `--no-add-aliases` | 是否添加 rb-* 别名 |
+| `--uninstall` | 调用卸载流程，删除配置、PM2 进程、Shell 别名等 |
 | `--yes` / `-y` | 跳过所有确认提示和飞书配置检查 |
+
+## 卸载
+
+```bash
+npx @u1in/reasonix-feishu-deploy --uninstall
+```
+
+交互式卸载向导会逐步引导你删除 PM2 进程、配置文件、Shell 别名和全局 CLI。
 
 ## 安装后的目录结构
 
@@ -97,8 +101,7 @@ node scripts/setup.mjs \
 ├── reasonix.toml         # Reasonix 配置（已生成）
 ├── ecosystem.config.js   # PM2 进程配置
 ├── pm2-start-bot.sh      # 启动脚本
-├── pm2-stop-bot.sh       # 停止脚本
-└── uninstall.sh          # 卸载脚本
+└── pm2-stop-bot.sh       # 停止脚本
 ```
 
 安装时还可选择添加 `rb-*` 快捷别名到 Shell 配置（`~/.zshrc` / `~/.bashrc`）：
@@ -166,11 +169,10 @@ pm2 restart reasonix-bot
 ## 卸载
 
 ```bash
-# 通过 rb-uninstall 别名（安装时自动配置）
-bash ~/.config/reasonix-bot/uninstall.sh
+npx @u1in/reasonix-feishu-deploy --uninstall
 
-# 或从项目目录运行
-bash scripts/uninstall.sh
+# 或通过安装时配置的别名
+rb-uninstall
 ```
 
 卸载脚本会清理：PM2 进程、`~/.config/reasonix-bot/` 目录、Shell 别名、可选的 reasonix CLI 和 PM2 全局包。

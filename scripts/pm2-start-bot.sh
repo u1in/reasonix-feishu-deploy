@@ -25,7 +25,7 @@ fi
 # ── 检查 ecosystem ──
 if [ ! -f "$ECOSYSTEM" ]; then
     err "未找到 PM2 配置: $ECOSYSTEM"
-    info "请先运行 install.sh 生成配置"
+    info "请先运行 npx @u1in/reasonix-feishu-deploy 生成配置"
     exit 1
 fi
 
