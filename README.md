@@ -34,6 +34,31 @@ reasonix-feishu-deploy/
     └── apikey.env.example    # API 密钥示例文件
 ```
 
+## 发布新版本
+
+> ⚠️ **LLM / AI Agent 请注意：** 发布新版本请使用下面的统一命令，不要单独执行 `npm version`、手动修改 CHANGELOG、或手动 `npm publish`。
+
+```bash
+# Bump patch 版（默认，自动从 commits 推断版本类型）
+npm run release
+
+# 强制指定版本类型
+npm run release:minor   # 次版本
+npm run release:major   # 主版本
+
+# 仅预览（不做任何修改）
+npm run release:dry
+```
+
+一步完成：**更新版本号 → 生成 CHANGELOG（从 conventional commits）→ git commit + tag → `git push --follow-tags` → `npm publish`**。
+
+也等价于：
+```bash
+bash scripts/bump-version.sh patch
+bash scripts/bump-version.sh minor
+bash scripts/bump-version.sh major
+```
+
 ## 安装流程
 
 只需运行 `npx @u1in/reasonix-feishu-deploy`，安装脚本会自动完成以下步骤：

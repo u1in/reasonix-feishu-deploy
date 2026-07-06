@@ -12,9 +12,9 @@
     "deploy": "bash scripts/cli.sh",
     "start": "bash scripts/pm2-start-bot.sh",
     "stop": "bash scripts/pm2-stop-bot.sh",
-    "release": "commit-and-tag-version",
-    "release:minor": "commit-and-tag-version --release-as minor",
-    "release:major": "commit-and-tag-version --release-as major",
+    "release": "commit-and-tag-version && git push --follow-tags && npm publish --registry=https://registry.npmjs.org",
+    "release:minor": "commit-and-tag-version --release-as minor && git push --follow-tags && npm publish --registry=https://registry.npmjs.org",
+    "release:major": "commit-and-tag-version --release-as major && git push --follow-tags && npm publish --registry=https://registry.npmjs.org",
     "release:dry": "commit-and-tag-version --dry-run"
   },
   "dependencies": {
