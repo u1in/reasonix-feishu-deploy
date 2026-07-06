@@ -1,5 +1,12 @@
 # @u1in/reasonix-feishu-deploy
 
+[![npm version](https://img.shields.io/npm/v/@u1in/reasonix-feishu-deploy?logo=npm&logoColor=fff)](https://www.npmjs.com/package/@u1in/reasonix-feishu-deploy)
+[![npm downloads](https://img.shields.io/npm/dm/@u1in/reasonix-feishu-deploy?logo=npm&logoColor=fff)](https://www.npmjs.com/package/@u1in/reasonix-feishu-deploy)
+[![License](https://img.shields.io/npm/l/@u1in/reasonix-feishu-deploy)](https://github.com/u1in/reasonix-feishu-deploy/blob/main/LICENSE)
+[![Node version](https://img.shields.io/node/v/@u1in/reasonix-feishu-deploy?logo=node.js&logoColor=fff)](https://www.npmjs.com/package/@u1in/reasonix-feishu-deploy)
+[![GitHub last commit](https://img.shields.io/github/last-commit/u1in/reasonix-feishu-deploy?logo=github&logoColor=fff)](https://github.com/u1in/reasonix-feishu-deploy/commits)
+[![GitHub stars](https://img.shields.io/github/stars/u1in/reasonix-feishu-deploy?logo=github&logoColor=fff)](https://github.com/u1in/reasonix-feishu-deploy)
+
 🤖 在 Linux 上**一键部署** Reasonix AI Bot，接入飞书即时通讯。
 
 ## 1. 安装
