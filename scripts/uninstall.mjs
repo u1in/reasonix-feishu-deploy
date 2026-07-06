@@ -58,6 +58,8 @@ function parseArgs() {
     if (arg === '--no-remove-pm2') { cli.removePm2 = false; continue; }
     if (arg === '--force-remove-dir')    { cli.forceRemoveDir = true; continue; }
     if (arg === '--no-force-remove-dir') { cli.forceRemoveDir = false; continue; }
+    if (arg === '--restore-user-config')    { cli.restoreUserConfig = true; continue; }
+    if (arg === '--no-restore-user-config') { cli.restoreUserConfig = false; continue; }
 
     if (arg.startsWith('--')) { console.warn(`  ${yellow('⚠')} 未知参数: ${arg}`); }
   }
@@ -243,14 +245,41 @@ async function main() {
       const fp = `${CONFIG_DIR}/${file}`;
       try { unlinkSync(fp); console.log(`  ${green('✓')} 已删除: ${file}`); } catch { /* 不存在 */ }
     }
-    // 删除 .reasonix/ 下的守卫文件 config.toml
-    const guardFile = `${CONFIG_DIR}/.reasonix/config.toml`;
-    if (existsSync(guardFile)) {
-      try { unlinkSync(guardFile); console.log(`  ${green('✓')} 已删除: .reasonix/config.toml`); } catch {}
-    }
     console.log(`  ${dim('─')} 配置文件已清理`);
   } else {
     console.log(`  ${dim('─')} 保留配置文件`);
+  }
+
+  // ── Reasonix 用户级配置还原 ──
+  const USER_REASONIX_CONFIG = `${HOME}/.reasonix/config.toml`;
+  const USER_REASONIX_BAK = `${USER_REASONIX_CONFIG}.deploy-bak`;
+  if (existsSync(USER_REASONIX_BAK)) {
+    let restoreUserConfig;
+    if (cli.restoreUserConfig !== undefined) {
+      restoreUserConfig = cli.restoreUserConfig;
+    } else if (!isQuiet) {
+      const r = await prompts({ type: 'confirm', name: 'v', message: '是否还原 ~/.reasonix/config.toml 到安装前的状态？', hint: '安装时备份为 config.toml.deploy-bak', initial: true }, { onCancel });
+      restoreUserConfig = r.v;
+    } else {
+      restoreUserConfig = true;
+    }
+
+    if (restoreUserConfig) {
+      try {
+        const bakContent = readFileSync(USER_REASONIX_BAK, 'utf-8');
+        writeFileSync(USER_REASONIX_CONFIG, bakContent, 'utf-8');
+        unlinkSync(USER_REASONIX_BAK);
+        console.log(`  ${green('✓')} 已还原: ~/.reasonix/config.toml`);
+        console.log(`  ${green('✓')} 已删除: ~/.reasonix/config.toml.deploy-bak`);
+      } catch (e) {
+        console.log(`  ${yellow('⚠')} 还原失败: ${e.message}`);
+      }
+    } else {
+      console.log(`  ${dim('─')} 保留合并后的 ~/.reasonix/config.toml`);
+      console.log(`  ${dim('    备份文件仍保留在: ~/.reasonix/config.toml.deploy-bak')}`);
+    }
+  } else {
+    console.log(`  ${dim('─')} 未发现 ~/.reasonix/config.toml 备份，跳过还原`);
   }
 
   // PM2 日志

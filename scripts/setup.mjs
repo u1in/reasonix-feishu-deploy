@@ -7,7 +7,7 @@
  *       或者: npm run setup (在 reasonix-deploy 包中)
  */
 import prompts from 'prompts';
-import { readFileSync, writeFileSync, existsSync, mkdirSync, copyFileSync, chmodSync } from 'fs';
+import { readFileSync, writeFileSync, existsSync, mkdirSync, copyFileSync, chmodSync, appendFileSync, unlinkSync } from 'fs';
 import { homedir } from 'os';
 import { resolve, dirname } from 'path';
 import { fileURLToPath } from 'url';
@@ -169,6 +169,99 @@ async function collectConfig(cli = {}) {
   return { appId, mode: 'websocket', allowAll, feishuUsers, requireMention, feishuSecret, deepseekKey };
 }
 
+// ── 合并用户级 Reasonix 配置（保留用户非 Bot 设置） ──
+function mergeWithUserConfig(templateText) {
+  const userConfigPath = `${HOME}/.reasonix/config.toml`;
+  const userConfigBakPath = `${userConfigPath}.deploy-bak`;
+
+  if (!existsSync(userConfigPath)) {
+    return templateText;
+  }
+
+  console.log(`  ${cyan('•')} 发现用户配置 ~/.reasonix/config.toml，备份中...`);
+  const userText = readFileSync(userConfigPath, 'utf-8');
+  // 如果上次备份存在则先删除（避免残留旧备份）
+  if (existsSync(userConfigBakPath)) {
+    try { unlinkSync(userConfigBakPath); } catch {}
+  }
+  writeFileSync(userConfigBakPath, userText, 'utf-8');
+  console.log(`  ${green('✓')} 已备份: ~/.reasonix/config.toml → ~/.reasonix/config.toml.deploy-bak`);
+
+  // 按节(section)拆分 TOML 文本
+  function splitSections(text) {
+    const blocks = [];
+    const lines = text.split('\n');
+    let i = 0;
+    // 前导内容（第一个 [section] 之前的顶层键）
+    while (i < lines.length && !lines[i].startsWith('[')) i++;
+    if (i > 0) blocks.push({ key: '__preamble__', content: lines.slice(0, i).join('\n') });
+    // 各节
+    while (i < lines.length) {
+      const header = lines[i];
+      i++;
+      const contentLines = [];
+      while (i < lines.length && !lines[i].startsWith('[')) {
+        contentLines.push(lines[i]);
+        i++;
+      }
+      blocks.push({ key: header, content: contentLines.join('\n') });
+    }
+    return blocks;
+  }
+
+  const isBot = k => k === '[bot]' || k.startsWith('[bot.');
+  const tBlocks = splitSections(templateText);
+  const uBlocks = splitSections(userText);
+
+  const userBlockMap = new Map(uBlocks.filter(b => b.key !== '__preamble__').map(b => [b.key, b]));
+  const tNonBotBlocks = tBlocks.filter(b => b.key !== '__preamble__' && !isBot(b.key));
+  const tBotBlocks = tBlocks.filter(b => b.key !== '__preamble__' && isBot(b.key));
+  const result = [];
+
+  // 1. 顶层键：以模板为基础，用用户的值覆盖同名键
+  const tPreamble = tBlocks.find(b => b.key === '__preamble__');
+  const uPreamble = uBlocks.find(b => b.key === '__preamble__');
+  if (tPreamble) {
+    const userKV = {};
+    if (uPreamble) {
+      for (const line of uPreamble.content.split('\n')) {
+        const m = line.match(/^(\w[\w._]*)\s*=/);
+        if (m) userKV[m[1]] = line;
+      }
+    }
+    const merged = tPreamble.content.split('\n').map(line => {
+      const m = line.match(/^(\w[\w._]*)\s*=/);
+      return (m && userKV[m[1]]) ? userKV[m[1]] : line;
+    });
+    result.push(merged.join('\n'));
+  }
+
+  // 2. 非 Bot 节：优先用用户的
+  for (const block of tNonBotBlocks) {
+    const ub = userBlockMap.get(block.key);
+    if (ub) {
+      result.push(block.key + '\n' + ub.content);
+    } else {
+      result.push(block.key + '\n' + block.content);
+    }
+  }
+
+  // 3. Bot 节：始终用模板的（后续会做 bot 专用覆写）
+  for (const block of tBotBlocks) {
+    result.push(block.key + '\n' + block.content);
+  }
+
+  // 4. 用户独有的节（模板没有的）追加到末尾
+  for (const block of uBlocks) {
+    if (block.key === '__preamble__') continue;
+    if (!tBlocks.some(tb => tb.key === block.key)) {
+      result.push(block.key + '\n' + block.content);
+    }
+  }
+
+  return result.join('\n\n') + '\n';
+}
+
 // ── 步骤 3: 配置摘要 + 确认 ──
 async function confirmConfig(config, cli = {}) {
   title('配置摘要');
@@ -218,8 +311,15 @@ async function generateConfig(config, cli = {}) {
     process.exit(1);
   }
 
-  copyFileSync(TEMPLATE_FILE, CONFIG_FILE);
-  let configContent = readFileSync(CONFIG_FILE, 'utf-8');
+  // ── 合并用户级配置 ──
+  // 放弃 REASONIX_HOME 隔离方案，改为在安装时 merge 用户自定义设置到配置中
+  // 先读取模板，然后与用户 ~/.reasonix/config.toml 合并
+  let configContent = readFileSync(TEMPLATE_FILE, 'utf-8');
+  configContent = mergeWithUserConfig(configContent);
+
+  // ── 写入用户级 Reasonix 配置（~/.reasonix/config.toml） ──
+  const REASONIX_USER_DIR = `${HOME}/.reasonix`;
+  mkdirSync(REASONIX_USER_DIR, { recursive: true });
 
   if (config.appId) {
     configContent = configContent.replace(/app_id = "your-feishu-app-id"/, `app_id = "${config.appId}"`);
@@ -244,43 +344,14 @@ async function generateConfig(config, cli = {}) {
     '$1enabled = true',
   );
 
+  writeFileSync(`${REASONIX_USER_DIR}/config.toml`, configContent, 'utf-8');
+  console.log(`  ${green('✓')} 配置已合并并写入: ~/.reasonix/config.toml`);
+
+  // 同时写入项目级配置（保持兼容，方便查看）
   writeFileSync(CONFIG_FILE, configContent, 'utf-8');
-  console.log(`  ${green('✓')} 配置文件已生成: ~/.config/reasonix-bot/reasonix.toml`);
+  console.log(`  ${green('✓')} 配置已同步到: ~/.config/reasonix-bot/reasonix.toml`);
 
-  // ── 预创建 $REASONIX_HOME/config.toml 守卫文件 ──
-  // Reasonix 的 loadBotCommandConfig() (internal/cli/bot.go:511-528) 在
-  // config.Load() 完成用户+项目级配置合并后，会重新加载用户级配置并用其
-  // [bot] 段完全覆盖合并后的 cfg.Bot。同时，userConfigLoadPath() 在
-  // $REASONIX_HOME/config.toml 不存在时会回退到 ~/.reasonix/config.toml（用户本地配置）。
-  //
-  // 因此需要预创建 $REASONIX_HOME/config.toml，内容与项目级 reasonix.toml
-  // 的 [bot] 段一致，以同时阻断这两条泄漏路径。
-  const REASONIX_HOME_DIR = `${CONFIG_DIR}/.reasonix`;
-  const REASONIX_HOME_CONFIG = `${REASONIX_HOME_DIR}/config.toml`;
-  mkdirSync(REASONIX_HOME_DIR, { recursive: true });
-
-  // 从已替换完成的 configContent 中提取 [bot] 及其所有子段 ([bot.xxx])
-  const lines = configContent.split('\n');
-  const botStartIdx = lines.findIndex(l => l.startsWith('[bot]'));
-  if (botStartIdx === -1) {
-    console.warn(`  ${yellow('⚠')} 配置模板缺少 [bot] 段，跳过守卫文件创建`);
-  } else {
-    const nextSectionIdx = lines.findIndex((l, i) => i > botStartIdx && /^\[(?!bot\.)/.test(l));
-    const botLines = nextSectionIdx > botStartIdx
-      ? lines.slice(botStartIdx, nextSectionIdx)
-      : lines.slice(botStartIdx);
-    const guardContent = botLines.join('\n') + '\n';
-    writeFileSync(REASONIX_HOME_CONFIG, guardContent, 'utf-8');
-    console.log(`  ${green('✓')} REASONIX_HOME 守卫已创建: ~/.config/reasonix-bot/.reasonix/config.toml`);
-  }
-
-  // ── 将 PM2 进程的 cwd 设为 CONFIG_DIR，使 reasonix 的 config.Load()
-  // ── (LoadForRoot(".")) 能加载 ~/.config/reasonix-bot/reasonix.toml
-  // ── 作为项目级配置。同时设置 env.REASONIX_HOME 指向已预创建守卫文件的
-  // ── .reasonix/ 目录，阻断 loadBotCommandConfig() 回读 ~/.reasonix/config.toml
-  // ── 来覆盖项目级 [bot] enabled = true（见 internal/cli/bot.go:511-528）。 ──
-
-  // PM2 ecosystem — 每次都重新生成，确保 cwd/reasonix 路径等始终正确
+  // PM2 ecosystem — 每次都重新生成，确保路径等始终正确
   const ecosystemFile = `${CONFIG_DIR}/ecosystem.config.js`;
   const REASONIX_BIN = execSync('which reasonix', { encoding: 'utf-8' }).trim();
   const ecosystem = `module.exports = {
@@ -290,7 +361,6 @@ async function generateConfig(config, cli = {}) {
     args: 'bot start --channels feishu --dir ${CONFIG_DIR}',
     cwd: '${CONFIG_DIR}',
     env: {
-      REASONIX_HOME: '${CONFIG_DIR}/.reasonix',
       DEEPSEEK_API_KEY: '${config.deepseekKey}',
       FEISHU_BOT_APP_SECRET: '${config.feishuSecret}'
     },
@@ -478,11 +548,14 @@ function printSummary() {
   console.log(`  ${cyan('📁')}  ~/.config/reasonix-bot/`);
   console.log(`     ${dim('├──')} reasonix.toml        项目配置`);
   console.log(`     ${dim('├──')} ecosystem.config.js   PM2 配置（含 API 密钥）`);
-  console.log(`     ${dim('├──')} .reasonix/           运行时隔离目录（自动管理）`);
   console.log(`     ${dim('├──')} pm2-start-bot.sh     启动脚本`);
   console.log(`     ${dim('├──')} pm2-stop-bot.sh      停止脚本`);
   console.log(`     ${dim('├──')} uninstall.sh         卸载脚本`);
   console.log(`     ${dim('└──')} uninstall.mjs        卸载程序`);
+  console.log();
+  console.log(`  ${cyan('📁')}  ~/.reasonix/`);
+  console.log(`     ${dim('├──')} config.toml          用户级配置（含 Bot 设置）`);
+  console.log(`     ${dim('└──')} config.toml.deploy-bak 安装前备份（卸载时可还原）`);
   console.log();
   console.log(`  ${yellow('═══ ⚠️  安装后不要忘记 ═══')}`);
   console.log();
