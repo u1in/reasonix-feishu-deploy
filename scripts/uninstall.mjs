@@ -166,18 +166,17 @@ async function main() {
   title('2/6 — 配置文件');
 
   const configFiles = [
-    'config.toml',
+    'reasonix.toml',
     'ecosystem.config.js',
     'pm2-start-bot.sh',
     'pm2-stop-bot.sh',
-    'config.json',
   ];
 
   const { removeConfig } = await prompts({
     type: 'confirm',
     name: 'removeConfig',
     message: '是否删除 ~/.config/reasonix-bot/ 下的配置文件？',
-    hint: 'config.toml / ecosystem.config.js / 启动脚本 等',
+    hint: 'reasonix.toml / ecosystem.config.js / 启动脚本 等',
     initial: true,
   }, { onCancel });
 
@@ -203,11 +202,12 @@ async function main() {
   title('3/6 — 会话与记忆');
 
   if (removeSessions && existsSync(CONFIG_DIR)) {
+    // reasonix 运行时数据目录由 --dir 指定，即 CONFIG_DIR (~/.config/reasonix-bot/)
     const dirsToRemove = [
       'sessions', 'projects', 'memory',
     ];
     for (const dir of dirsToRemove) {
-      const fp = `${REASONIX_DIR}/${dir}`;
+      const fp = `${CONFIG_DIR}/${dir}`;
       try {
         rmSync(fp, { recursive: true, force: true });
         console.log(`  ${green('✓')} 已删除: ${dir}/`);

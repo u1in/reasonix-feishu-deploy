@@ -122,6 +122,9 @@ info "检查依赖..."
 if ! node -e "require('prompts')" 2>/dev/null; then
   info "正在安装 prompts..."
   npm install -g prompts 2>/dev/null || true
+  if ! node -e "require('prompts')" 2>/dev/null; then
+    warn "prompts 全局安装失败，setup.mjs 将尝试自动安装"
+  fi
 fi
 ok "依赖就绪"
 

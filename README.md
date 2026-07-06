@@ -57,7 +57,7 @@ reasonix-feishu-deploy/
 |------|------|
 | 1. 检查/安装 Node.js | 如果未安装则通过 nvm 安装 Node 22 LTS |
 | 2. 安装 reasonix CLI | `npm i -g reasonix@next` |
-| 3. 配置 reasonix | 生成 `~/.config/reasonix-bot/config.toml` + 交互式录入 API 密钥 |
+| 3. 配置 reasonix | 生成 `~/.config/reasonix-bot/reasonix.toml` + 交互式录入 API 密钥 |
 | 4. 配置 PM2 守护进程 | 安装 PM2、生成 ecosystem 配置、可选开机自启 |
 | 5. Shell 别名 | 可选添加 rb-* 快捷命令到 Shell 配置 |
 | 6. 启动 Bot | 通过 PM2 启动 reasonix-bot |
@@ -110,7 +110,7 @@ node scripts/setup.mjs \
 ```
 ~/.config/reasonix-bot/
 ├── .env                  # API 密钥（已生成）
-├── config.toml           # Reasonix 配置（已生成）
+├── reasonix.toml         # Reasonix 配置（已生成）
 ├── ecosystem.config.js   # PM2 进程配置
 ├── pm2-start-bot.sh      # 启动脚本
 ├── pm2-stop-bot.sh       # 停止脚本
@@ -169,7 +169,7 @@ rb-uninstall    # 卸载
 ### 修改配置
 
 ```bash
-vim ~/.config/reasonix-bot/config.toml     # 修改 Reasonix 配置
+vim ~/.config/reasonix-bot/reasonix.toml   # 修改 Reasonix 配置
 vim ~/.config/reasonix-bot/.env            # 修改 API 密钥
 ```
 

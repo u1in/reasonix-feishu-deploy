@@ -57,7 +57,12 @@ else
   else
     # 尝试本地安装到配置目录
     cd "$CONFIG_DIR" && npm install prompts &>/dev/null || true
-    ok "依赖就绪"
+    if node -e "require('prompts')" 2>/dev/null; then
+      ok "依赖就绪"
+    else
+      err "prompts 安装失败，请手动执行: npm install -g prompts"
+      exit 1
+    fi
   fi
 fi
 
