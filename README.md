@@ -4,19 +4,15 @@
 
 ## 快速开始
 
-### 方式一：npm create（推荐）
-
-```bash
-npm create @u1in/reasonix-feishu-deploy
-```
-
-### 方式二：npx 直接运行
+### 方式一：npx 一键安装（推荐）
 
 ```bash
 npx @u1in/reasonix-feishu-deploy
 ```
 
-### 方式三：本地运行（克隆仓库后）
+安装向导会自动完成：环境检查 → 密钥录入 → 配置文件生成 → PM2 启动。
+
+### 方式二：本地运行（克隆仓库后）
 
 ```bash
 bash scripts/install.sh
