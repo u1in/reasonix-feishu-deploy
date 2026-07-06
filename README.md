@@ -29,10 +29,10 @@ npx @u1in/reasonix-feishu-deploy \
 | `--app-id <id>` | 飞书 App ID |
 | `--app-secret <secret>` | 飞书 App Secret |
 | `--api-key <key>` | DeepSeek API Key |
-| `--allow-all` / `--no-allow-all` | 白名单策略（默认允许所有人） |
-| `--require-mention` / `--no-require-mention` | 群聊是否需要 @Bot 回复 |
-| `--users <id1,id2,...>` | 指定允许的飞书用户 Open ID |
-| `--add-aliases` / `--no-add-aliases` | 添加 rb-* 别名 |
+| `--allow-all` / `--no-allow-all` | 白名单策略（默认允许所有人，安装后可在 config.toml 修改） |
+| `--require-mention` / `--no-require-mention` | 群聊是否需要 @Bot 回复（默认否，安装后可在 config.toml 修改） |
+| `--users <id1,id2,...>` | 指定允许的飞书用户 Open ID（需配合 `--no-allow-all` 使用） |
+| `--add-aliases` / `--no-add-aliases` | 添加 rb-* 快捷命令 |
 
 > 安装时如果检测到 `~/.reasonix/config.toml`（个人 Reasonix 配置），会自动备份并与其合并，保留你已有的 UI 主题、自定义 Provider、工具配置等非 Bot 设置。
 
@@ -55,7 +55,7 @@ npx @u1in/reasonix-feishu-deploy --undeploy \
 | `--remove-pm2` / `--no-remove-pm2` | 卸载 PM2（默认否） |
 | `--force-remove-dir` / `--no-force-remove-dir` | 强制删除配置目录（默认否） |
 
-> 卸载时会自动还原 `~/.reasonix/config.toml` 到安装前的状态（如有备份 `config.toml.deploy-bak`）。
+> 卸载时会询问是否还原 `~/.reasonix/config.toml` 到备份时的状态（安装时会自动备份 `config.toml.deploy-bak`）。
 
 ## 3. 日常管理
 
@@ -90,8 +90,6 @@ vim ~/.reasonix/config.toml                                    # 用户级配置
 vim ~/.config/reasonix-bot/ecosystem.config.js                 # API 密钥
 # 改完后重启: rb-restart 或 pm2 restart reasonix-bot
 ```
-
-配置加载优先级：flag > `./config.toml`（项目级） > `~/.reasonix/config.toml`（用户级） > 内置默认值。
 
 ## 4. 配置机器人
 
