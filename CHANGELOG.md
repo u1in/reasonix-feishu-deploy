@@ -2,6 +2,28 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [0.3.0](https://github.com/u1in/reasonix-feishu-deploy/compare/v0.2.1...v0.3.0) (2026-07-06)
+
+
+### ⚠ BREAKING CHANGES
+
+* .env file is no longer generated. API keys are now
+directly embedded in PM2 ecosystem.config.js env block.
+
+### ♻️ 重构
+
+* remove .env file, pass API keys via PM2 ecosystem env ([303cccc](https://github.com/u1in/reasonix-feishu-deploy/commit/303cccca0a5f82cb97da6f17b2f61a23c2c37a7c))
+
+
+### 📝 文档
+
+* 在 README 标题下添加 npm/GitHub 徽章 ([3a71377](https://github.com/u1in/reasonix-feishu-deploy/commit/3a71377125d47692198e7482f6b7205940092a40))
+
+
+### 🔧 杂项
+
+* remove apikey.env.example — no longer needed ([845dfc7](https://github.com/u1in/reasonix-feishu-deploy/commit/845dfc7b0c565e636a87cdaabeabbc21cb207a17))
+
 ## [0.2.1](https://github.com/u1in/reasonix-feishu-deploy/compare/v0.2.0...v0.2.1) (2026-07-06)
 
 
