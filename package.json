@@ -1,0 +1,36 @@
+{
+  "name": "reasonix-feishu-deploy",
+  "version": "1.0.0",
+  "description": "🤖 Reasonix 飞书 Bot — 一键部署套件，在任何 Linux 机器上快速部署 AI Bot 接入飞书",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "setup": "node scripts/setup.mjs",
+    "uninstall": "node scripts/uninstall.mjs",
+    "install": "bash scripts/install.sh",
+    "start": "bash scripts/pm2-start-bot.sh",
+    "stop": "bash scripts/pm2-stop-bot.sh"
+  },
+  "dependencies": {
+    "prompts": "^2.4.2"
+  },
+  "files": [
+    "scripts/",
+    "config/"
+  ],
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/u1in/reasonix-feishu-deploy.git"
+  },
+  "keywords": [
+    "reasonix",
+    "feishu",
+    "bot",
+    "deploy",
+    "lark"
+  ],
+  "license": "MIT"
+}

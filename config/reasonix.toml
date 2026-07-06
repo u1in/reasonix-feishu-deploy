@@ -1,0 +1,478 @@
+# ═══════════════════════════════════════════════════════════════════════════
+# Reasonix 全局配置文件（用户级）
+# 优先级: flag > ./reasonix.toml（项目级） > ~/.reasonix/config.toml（用户级） > 内置默认值
+# 密钥不在此存储，通过 api_key_env 从 ~/.reasonix/.env 读取
+# ═══════════════════════════════════════════════════════════════════════════
+
+# ── 基础 ──
+
+# 配置版本号（仅用于诊断；旧版本可能忽略）
+config_version = 3
+
+# 默认 AI 模型（对应下方 [[providers]] 中的 name）
+default_model = "deepseek-flash"
+
+# 界面/模型语言
+# 可选项: "zh"（中文）| "en"（英文）| ""（自动检测 $LANG / $REASONIX_LANG）
+language      = "zh"
+
+# ── UI 外观（仅 CLI 生效，桌面版在 [desktop] 中配置） ──
+
+[ui]
+
+# 主题
+# 可选项: "auto"（跟随系统）| "dark" | "light"
+theme = "light"
+
+# CLI 色彩风格
+# 可选项: "glacier" | "graphite" | "aurora" | "slate" | "carbon" | "nocturne" | "amber"
+# 环境变量 REASONIX_THEME_STYLE 可覆盖
+theme_style = "glacier"
+
+# 快捷键方案（已废弃，保留兼容性）
+# 可选项: "classic" | "desktop"
+# shortcut_layout = "desktop"
+
+# 是否默认展开推理过程文本（CLI 中 Ctrl+O 切换）
+# 可选项: true（展开）| false（折叠）
+# show_reasoning = false
+
+# ── 桌面版 UI（仅 reasonix desktop 生效） ──
+
+[desktop]
+
+# 桌面版语言
+# 可选项: "zh" | "en" | ""（自动检测浏览器/OS）
+# language = "zh"
+
+# 桌面版布局风格
+# 可选项: "classic" | "workbench" | "creation"
+layout_style = "workbench"
+
+# 桌面版主题
+# 可选项: "auto"（跟随系统）| "dark" | "light"
+theme = "auto"
+
+# 桌面版色彩风格
+# 可选项: "graphite" | "aurora" | "slate" | "carbon" | "nocturne" | "amber"等
+# theme_style = "graphite"
+
+# 关闭窗口的行为
+# 可选项: "background"（后台运行）| "quit"（退出程序）
+close_behavior = "background"
+
+# 状态栏样式
+# 可选项: "icon" | "text"
+# status_bar_style = "text"
+
+# 状态栏显示项（有序列表）
+# status_bar_items = ["model", "workspace", "git_branch", "cache", "cache_avg", "session_tokens", "turn_tokens", "turn_cost", "session_turns", "context", "compact", "cost", "balance"]
+
+# 默认的工具审批模式（新建会话时）
+# 可选项: "ask"（每次询问）| "auto"（自动允许安全操作）| "yolo"（放行所有）
+default_tool_approval_mode = "yolo"
+
+# 是否检查更新
+check_updates = true
+
+# 匿名使用统计（仅安装ID+版本+OS，不含任何内容）
+telemetry = true
+metrics = true
+
+# 是否默认展开推理文本
+# 可选项: true（展开）| false（折叠）
+# expand_thinking = false
+
+# 转录显示模式
+# 可选项: "standard" | "compact"
+# display_mode = "standard"
+
+# ── 系统通知（CLI 模式） ──
+
+[notifications]
+
+# 启用系统通知
+enabled = true
+
+# 每个 AI 回复轮次完成后通知
+turn_done = true
+
+# 等待工具审批时通知
+approval_request = true
+
+# 有提问待回答时通知
+ask_request = true
+
+# ── 网络代理 ──
+
+[network]
+
+# 代理模式
+# 可选项: "auto"（自动检测环境变量）| "env"（仅环境变量）| "custom"（自定义）| "off"（关闭）
+proxy_mode = "auto"
+
+# 自定义代理地址（proxy_mode = "custom" 时生效）
+# 示例: "socks5://127.0.0.1:7890"
+# proxy_url  = "socks5://127.0.0.1:7890"
+
+# 不走代理的地址
+# no_proxy   = "localhost,127.0.0.1,.local"
+
+[network.proxy]
+
+# 代理协议类型
+# 可选项: "http" | "https" | "socks5" | "socks5h"
+type = "socks5"
+
+# 代理服务器地址
+# server = "127.0.0.1"
+# port = 7890
+# username = ""
+# password = "${REASONIX_PROXY_PASSWORD}"   # 支持 ${VAR} 环境变量展开
+
+# ── Agent 行为 ──
+
+[agent]
+
+# 自定义系统提示词（不设置则使用内置默认提示）
+# system_prompt = """..."""
+
+# 从文件读取系统提示词（优先级高于 system_prompt）
+# system_prompt_file = "prompts/system.md"
+
+# AI 最大工具调用步数（0 = 不限制）
+# max_steps = 0
+
+# 规划器最大只读步数（0 = 不限制）
+# planner_max_steps = 0
+
+# AI 生成温度（0.0 = 精确，1.0 = 创造性，建议 0.0~0.7）
+temperature       = 0.0
+
+# 自动计划模式（是否让 AI 自行决定是否先做计划再执行）
+# 可选项: "on"（开启）| "off"（关闭，手动触发计划模式）
+auto_plan   = "off"
+
+# Memory v5 执行编译器（缓存失败记录避免重复犯错）
+# 可选项: { enabled = true } | { enabled = false }
+memory_compiler = { enabled = true }
+
+# 推理语言（AI 的思考过程语言）
+# 可选项: "auto"（自动检测）| "zh" | "en"
+# reasoning_language = "zh"
+
+# 自动计划分类器使用的模型
+# auto_plan_classifier = "deepseek-flash"
+
+# ── 提示压缩 ──
+
+# 触发提示压缩告警的比例（相对于 context_window）
+# 范围: 0.0 ~ 1.0；0.5 = 达到一半 context 时提示
+soft_compact_ratio  = 0.5
+
+# 触发自动压缩的比例
+compact_ratio       = 0.8
+
+# 强制压缩的紧急水位
+compact_force_ratio = 0.9
+
+# 压缩时保留的策略
+# keep = ["errors", "user_marked"]
+
+# 最少保留的最近消息数（避免丢失上下文）
+# recent_keep = 2
+
+# 冷恢复时是否修剪过时的工具调用结果
+cold_resume_prune   = true
+
+# 计划模式下额外允许的只读工具（不能绕过已知的 blocked tool）
+# plan_mode_allowed_tools = ["custom_reader"]
+
+# 规划器模型（可选；启用双模型协作）
+# planner_model = "deepseek-pro"
+
+# 子 agent 默认模型（可选）
+# subagent_model = "deepseek-pro"
+
+# 每个子技能的子 agent 模型覆盖
+# subagent_models = { review = "deepseek-pro", security_review = "deepseek-pro" }
+
+# 子 agent 默认推理力度
+# 可选项: "low" | "medium" | "high" | "max"
+# subagent_effort = "high"
+
+# 每个工具/技能的子 agent 推理力度覆盖
+# subagent_efforts = { review = "max", task = "high" }
+
+# AI 回复风格
+# 可选项: "explanatory"（解释型）| "learning"（教学型）| "concise"（简洁）| "custom"
+# output_style = "explanatory"
+
+# ── AI 模型提供商 ──
+
+[[providers]]
+
+# 提供商名称（供 default_model 引用）
+name        = "deepseek-flash"
+
+# 提供商类型
+# 可选项: "openai"（兼容 OpenAI 格式）| "anthropic" | "google" | "ollama" 等
+kind        = "openai"
+
+# API 地址
+base_url    = "https://api.deepseek.com"
+
+# 此提供商提供的模型列表
+models      = ["deepseek-v4-flash"]
+
+# 默认模型（从 models 中选择一个）
+default     = "deepseek-v4-flash"
+
+# 读取 API Key 的环境变量名（值存在 ~/.reasonix/.env 中）
+api_key_env = "DEEPSEEK_API_KEY"
+
+# 查询余额的 API 地址（可选，底部状态栏显示余额）
+# balance_url = "https://api.deepseek.com/user/balance"
+
+# 上下文窗口大小（token 数；达到此数值时触发压缩）
+context_window = 1000000
+
+# 价格（每百万 token；可选，用于显示调用成本）
+# cache_hit = 缓存命中的价格，input = 输入价格，output = 输出价格
+# currency = 货币符号，如 "¥" | "$"
+price       = { cache_hit = 0.02, input = 1, output = 2, currency = "¥" }
+
+# ── 工具设置 ──
+
+[tools]
+
+# 启用的工具白名单（空 = 启用所有内置工具）
+enabled = []
+
+# bash 命令前台超时秒数（0 = 不限制）
+bash_timeout_seconds = 120
+
+# MCP 调用超时秒数（每个插件/工具可单独设置）
+mcp_call_timeout_seconds = 300
+
+# ── 后台任务 ──
+
+[tools.background_jobs]
+
+# 后台任务静默告警阈值（超过此秒数无输出则警告；0 = 禁用）
+stalled_warning_seconds = 900
+
+# ── Shell ──
+
+[tools.shell]
+
+# 首选 Shell
+# 可选项: "auto"（自动检测）| "bash" | "powershell" | "pwsh"
+# prefer = "auto"
+
+# Shell 可执行文件绝对路径（空 = PATH 查找）
+# path = "/bin/bash"
+
+# ── 语言服务器（LSP） ──
+
+[lsp]
+
+# 启用 LSP 支持（编辑器内的代码补全、跳转等）
+enabled = true
+
+# 可自定义每个语言的 LSP 服务器：
+# [lsp.servers.go]
+# command = "gopls"
+# args = []
+# extensions = [".go"]
+
+# ── 技能（Skills） ──
+
+[skills]
+
+# 额外技能目录路径
+# paths = ["~/my-skills", "../shared/skills"]
+
+# 排除的约定技能目录（不删除文件夹，仅隐藏）
+# excluded_paths = ["~/.agents/skills"]
+
+# 最大目录扫描深度（1 = 仅根目录）
+# max_depth = 3
+
+# 禁用的技能（屏蔽不需要的技能）
+# disabled_skills = ["review"]
+
+# ── 权限控制 ──
+
+[permissions]
+
+# 默认权限模式（当无规则匹配时）
+# 可选项: "ask"（询问用户）| "allow"（自动允许）| "deny"（拒绝）
+mode  = "ask"
+
+# 永远拒绝的命令（支持通配符）
+# deny = ["Bash(rm -rf*)", "Bash(git push*)"]
+
+# 永远允许的命令（不再询问）
+# allow = ["Bash(go test:*)", "Bash(git status:*)"
+
+# 强制询问的命令（即使在其他模式下也会弹出确认）
+# ask = ["Edit(src/**)"]
+
+# ── 沙箱（安全隔离） ──
+
+[sandbox]
+
+# 工作区根目录（文件写入限制在此目录下）
+# workspace_root = ""
+# 额外允许写入的目录
+# allow_write = ["/tmp"]
+# 禁止读取的目录
+# forbid_read = []
+
+# bash 沙箱模式
+# 可选项: "enforce"（强制沙箱）| "off"（关闭）
+bash    = "off"
+
+# 是否允许网络访问
+network = true
+
+# ── 自定义状态栏 ──
+
+[statusline]
+
+# 自定义状态栏命令（从 stdin 接收 JSON，输出第一行作为状态栏文本）
+# 接收: {"model","contextUsed","contextWindow","cwd"}
+# command = "my-statusline.sh"
+
+# ═══════════════════════════════════════════════════════════════════════════
+# Bot 网关 — 多通道 IM Bot
+# ═══════════════════════════════════════════════════════════════════════════
+
+[bot]
+
+# 是否启用 Bot 网关
+enabled = true
+
+# Bot 使用的 AI 模型（空 = 使用 default_model）
+# model = ""
+
+# Bot 的工具审批模式
+# 可选项: "ask"（每次询问）| "auto"（自动允许安全操作）| "yolo"（跳过工具审批，仅对 Bot 生效）
+tool_approval_mode = "yolo"
+
+# Bot 单次任务最大工具调用步数
+max_steps = 40
+
+# 消息去抖动毫秒数（同一用户多条消息合并）
+debounce_ms = 3000
+
+# ── 用户白名单 ──
+# ⚠️ 常见坑: 如果你发消息 Bot 不回复，90% 是这个白名单配置的问题
+
+[bot.allowlist]
+
+# 是否启用白名单
+enabled = true
+
+# 是否允许所有用户（true = 不限制，任何人可访问；false = 仅列表内用户可用）
+# ⚠️ 请勿同时设置 allow_all = false 且 feishu_users = []，否则所有消息都会被静默忽略
+allow_all = true
+
+# 各渠道允许的用户 ID 列表（allow_all = false 时生效）
+# 飞书用户 ID 格式: ou_xxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+qq_users = []
+feishu_users = ["ou_xxxxxxxxxxxxxxxxxxxxxxxxxxxxx"]
+weixin_users = []
+
+# 各渠道允许的群 ID 列表
+qq_groups = []
+feishu_groups = []
+weixin_groups = []
+
+# ── QQ Bot ──
+
+[bot.qq]
+
+# 是否启用 QQ Bot
+enabled = true
+
+# QQ Bot App ID（在 QQ 开放平台获取）
+app_id = "your-qq-app-id"
+
+# 读取 App Secret 的环境变量名
+app_secret_env = "QQ_BOT_APP_SECRET"
+
+# 沙箱模式（测试环境）
+sandbox = false
+
+# ── 飞书 Bot ──
+
+[bot.feishu]
+
+# 是否启用飞书 Bot
+enabled = true
+
+# 飞书应用 App ID（在飞书开放平台 → 凭证与基础信息 获取）
+app_id = "your-feishu-app-id"
+
+# 域名
+# 可选项: "feishu"（飞书国内版）| "lark"（Lark 海外版）
+domain = "feishu"
+
+# 读取 App Secret 的环境变量名
+app_secret_env = "FEISHU_BOT_APP_SECRET"
+
+# 验证 token（仅 Webhook 模式需要；WebSocket 模式留空即可）
+verification_token = ""
+
+# 消息接收模式
+# ⚠️ 重要: 如果你用飞书长连接接收事件，必须设为 "websocket"
+# 如果设为 "webhook"，启动时会报错:
+#   "webhook mode needs verification_token set — refusing to expose an unauthenticated event endpoint"
+# 可选项: "websocket"（WebSocket 长连接，推荐）| "webhook"（HTTP 回调，需要配置 verification_token）
+mode = "websocket"
+
+# Webhook 监听端口（mode = "webhook" 时生效）
+webhook_port = 8080
+
+# 是否需要 @Bot 才响应（飞书群聊中）
+# ⚠️ 注意: 此选项仅影响群聊 (group)，私聊 (p2p) 不受影响
+# 可选项: true（仅当 @Bot 时回复）| false（监听所有消息）
+require_mention = false
+
+# ── 微信 Bot ──
+
+[bot.weixin]
+
+# 是否启用微信 Bot
+enabled = true
+
+# 微信账号 ID
+account_id = "default"
+
+# 读取 Token 的环境变量名
+token_env = "WEIXIN_BOT_TOKEN"
+
+# API 地址（iLink 平台）
+api_base = "https://ilinkai.weixin.qq.com"
+
+# ═══════════════════════════════════════════════════════════════════════════
+# 外部 MCP 插件
+# ═══════════════════════════════════════════════════════════════════════════
+
+# type: "stdio"（子进程，默认）| "http"（HTTP）| "sse"（SSE）
+# 支持 ${VAR} / ${VAR:-default} 环境变量展开
+
+# [[plugins]]
+# name    = "example"
+# command = "reasonix-plugin-example"
+# call_timeout_seconds = 600          # 可选的单次调用超时
+# tool_timeout_seconds = { "generate_video" = 1800 }   # 指定工具的独立超时
+# trusted_read_only_tools = ["search"]   # 预授权的只读 MCP 工具
+#
+# [[plugins]]
+# name    = "stripe"
+# type    = "http"
+# url     = "https://mcp.stripe.com"
+# headers = { Authorization = "Bearer ${STRIPE_KEY}" }
