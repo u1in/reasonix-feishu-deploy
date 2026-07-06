@@ -121,16 +121,15 @@ else
   fi
 fi
 
-# Step 2: 安装依赖（prompts）
+# Step 2: 安装依赖（ESM import 不查找全局包，需在本地 node_modules 安装）
 info "检查依赖..."
-if ! node -e "require('prompts')" 2>/dev/null; then
+cd "$PACKAGE_DIR"
+if [ -d node_modules/prompts ]; then
+  ok "依赖就绪"
+else
   info "正在安装 prompts..."
-  npm install -g prompts 2>/dev/null || true
-  if ! node -e "require('prompts')" 2>/dev/null; then
-    warn "prompts 全局安装失败，setup.mjs 将尝试自动安装"
-  fi
+  npm install prompts 2>/dev/null && ok "依赖就绪" || warn "prompts 安装失败，请手动执行: npm install prompts"
 fi
-ok "依赖就绪"
 
 # Step 3: 进入交互式向导
 echo ""
