@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [0.3.2](https://github.com/u1in/reasonix-feishu-deploy/compare/v0.3.0...v0.3.2) (2026-07-06)
+
+
+### 🐛 修复
+
+* pre-create $REASONIX_HOME/config.toml with [bot] enabled = true ([6fabd06](https://github.com/u1in/reasonix-feishu-deploy/commit/6fabd061b3a837eabf12bc31190316f2b751b2c6))
+* 预创建 REASONIX_HOME/config.toml 守卫文件，阻断用户本地配置泄漏 ([2285d58](https://github.com/u1in/reasonix-feishu-deploy/commit/2285d5863f6163539d217fc89e2f7b531ebec66c))
+
+
+### ♻️ 重构
+
+* 使用 REASONIX_HOME 守卫文件完全隔离用户本地配置 ([00b61b0](https://github.com/u1in/reasonix-feishu-deploy/commit/00b61b05083c265b8503abd28e42b0fddd7a6362))
+
 ## [0.3.1](https://github.com/u1in/reasonix-feishu-deploy/compare/v0.3.0...v0.3.1) (2026-07-06)
 
 
