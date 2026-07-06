@@ -61,13 +61,10 @@ function title(text) {
 
 function stepBanner(current, total, label) {
   console.clear();
-  const bar = Array.from({ length: total }, (_, i) => i < current ? green('●') : dim('○')).join(' ');
-  console.log(`\n${green('  ╭──────────────────────────────────────────────╮')}`);
-  console.log(`${green('  │')}  ${bold('🤖  Reasonix 飞书 Bot — 部署向导')}      ${green('│')}`);
-  console.log(`${green('  │')}                                               ${green('│')}`);
-  console.log(`${green('  │')}  ${dim('步骤')} ${bar}  ${cyan(`${current}/${total}`)}      ${green('│')}`);
-  console.log(`${green('  │')}  ${bold(cyan(label))}${' '.repeat(40 - label.length)}${green('│')}`);
-  console.log(`${green('  ╰──────────────────────────────────────────────╯')}`);
+  const bar = Array.from({ length: total }, (_, i) => i < current ? green('■') : dim('□')).join(' ');
+  console.log(`\n${bold(green('━━━'))} ${bold('🤖 Reasonix 飞书 Bot — 部署向导')}  ${dim(`[${current}/${total}]`)} ${bold(green('━━━'))}`);
+  console.log(`  ${dim('步骤')} ${bar}`);
+  console.log(`  ${bold(cyan(label))}`);
   console.log();
 }
 
@@ -454,11 +451,7 @@ async function setupShellAliases(cli = {}) {
 
 // ── 完成 ──
 function printSummary(hasAliases) {
-  console.log(`\n${green('  ╭──────────────────────────────────────────────╮')}`);
-  console.log(`${green('  │')}                                              ${green('│')}`);
-  console.log(`${green('  │')}   🎉  部署完成！                              ${green('│')}`);
-  console.log(`${green('  │')}                                              ${green('│')}`);
-  console.log(`${green('  ╰──────────────────────────────────────────────╯')}`);
+  console.log(`\n${bold(green('━━━'))} ${bold('🎉 部署完成！')} ${bold(green('━━━'))}`);
   console.log();
   console.log(`  ${cyan('📁')}  ~/.config/reasonix-bot/`);
   console.log(`     ${dim('├──')} config.toml         项目配置`);

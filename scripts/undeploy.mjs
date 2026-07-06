@@ -109,13 +109,10 @@ function listDir(dir) {
 
 function stepBanner(current, total, label) {
   console.clear();
-  const bar = Array.from({ length: total }, (_, i) => i < current ? green('●') : dim('○')).join(' ');
-  console.log(`\n${red('  ╭──────────────────────────────────────────────╮')}`);
-  console.log(`${red('  │')}  ${bold('🗑️   Reasonix 飞书 Bot — 卸载向导')}      ${red('│')}`);
-  console.log(`${red('  │')}                                               ${red('│')}`);
-  console.log(`${red('  │')}  ${dim('步骤')} ${bar}  ${cyan(`${current}/${total}`)}      ${red('│')}`);
-  console.log(`${red('  │')}  ${bold(cyan(label))}${' '.repeat(40 - label.length)}${red('│')}`);
-  console.log(`${red('  ╰──────────────────────────────────────────────╯')}`);
+  const bar = Array.from({ length: total }, (_, i) => i < current ? green('■') : dim('□')).join(' ');
+  console.log(`\n${bold(red('━━━'))} ${bold('🗑️ Reasonix 飞书 Bot — 卸载向导')}  ${dim(`[${current}/${total}]`)} ${bold(red('━━━'))}`);
+  console.log(`  ${dim('步骤')} ${bar}`);
+  console.log(`  ${bold(cyan(label))}`);
   console.log();
 }
 
@@ -356,11 +353,7 @@ async function main() {
 
   // ─── 完成 ───
   console.clear();
-  console.log(`\n${red('  ╭──────────────────────────────────────────────╮')}`);
-  console.log(`${red('  │')}                                              ${red('│')}`);
-  console.log(`${red('  │')}   🗑️   卸载完成！                            ${red('│')}`);
-  console.log(`${red('  │')}                                              ${red('│')}`);
-  console.log(`${red('  ╰──────────────────────────────────────────────╯')}`);
+  console.log(`\n${bold(red('━━━'))} ${bold('🗑️ 卸载完成！')} ${bold(red('━━━'))}`);
   console.log();
 }
 
