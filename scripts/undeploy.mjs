@@ -3,8 +3,8 @@
  * Reasonix 飞书 Bot — 卸载还原脚本
  * 还原 deploy 所做的所有修改，支持选择性保留数据。
  *
- * 推荐用法: npx @u1in/reasonix-feishu-deploy --uninstall
- * 也可直接: node uninstall.mjs
+ * 推荐用法: npx @u1in/reasonix-feishu-deploy --undeploy
+ * 也可直接: node undeploy.mjs
  */
 import { createRequire } from 'module';
 const _require = createRequire(import.meta.url);
@@ -196,7 +196,7 @@ async function main() {
   }
 
   // ─── 1. 停掉 PM2 进程 ───
-  title('1/6 — 停掉 Bot 进程');
+  title('1/5 — 停掉 Bot 进程');
 
   try {
     execSync('pm2 stop reasonix-bot 2>/dev/null && pm2 delete reasonix-bot 2>/dev/null', { stdio: 'ignore' });
@@ -206,7 +206,7 @@ async function main() {
   }
 
   // ─── 2. 配置文件 ───
-  title('2/6 — 配置文件');
+  title('2/5 — 配置文件');
 
   const PM2_LOG_DIR = `${HOME}/.pm2/logs`;
   const hasPm2Logs = existsSync(PM2_LOG_DIR) &&
@@ -228,16 +228,6 @@ async function main() {
     removeConfig = r.v;
   } else {
     removeConfig = true;
-  }
-
-  let removeSessions;
-  if (cli.removeSessions !== undefined) {
-    removeSessions = cli.removeSessions;
-  } else if (!isQuiet) {
-    const r = await prompts({ type: 'confirm', name: 'v', message: '是否删除会话记录和记忆数据？（聊天历史将丢失）', hint: 'sessions/ / memory/ 等', initial: false }, { onCancel });
-    removeSessions = r.v;
-  } else {
-    removeSessions = false;
   }
 
   if (removeConfig && existsSync(CONFIG_DIR)) {
@@ -306,7 +296,17 @@ async function main() {
   }
 
   // ─── 3. 会话和记忆数据 ───
-  title('3/6 — 会话与记忆');
+  title('3/5 — 会话与记忆');
+
+  let removeSessions;
+  if (cli.removeSessions !== undefined) {
+    removeSessions = cli.removeSessions;
+  } else if (!isQuiet) {
+    const r = await prompts({ type: 'confirm', name: 'v', message: '是否删除会话记录和记忆数据？（聊天历史将丢失）', hint: 'sessions/ / memory/ 等', initial: false }, { onCancel });
+    removeSessions = r.v;
+  } else {
+    removeSessions = false;
+  }
 
   if (removeSessions && existsSync(CONFIG_DIR)) {
     // reasonix 运行时数据目录由 --dir 指定，即 CONFIG_DIR (~/.config/reasonix-bot/)
@@ -329,7 +329,7 @@ async function main() {
   }
 
   // ─── 4. Shell 别名 ───
-  title('4/6 — Shell 别名');
+  title('4/5 — Shell 别名');
 
   if (hasAliases) {
     let removeAliases;
@@ -359,7 +359,7 @@ async function main() {
   }
 
   // ─── 5. 全局 CLI ───
-  title('5/6 — 全局 CLI');
+  title('5/5 — 全局 CLI');
 
   const cliActions = [];
 

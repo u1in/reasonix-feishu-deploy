@@ -3,8 +3,8 @@
  * Reasonix 飞书 Bot — 交互式配置向导
  * 使用 prompts 库实现方向键选择、实时校验的交互体验。
  *
- * 用法: node setup.mjs
- *       或者: npm run setup (在 reasonix-deploy 包中)
+ * 用法: node deploy.mjs
+ *       或者: npm run wizard (在 reasonix-deploy 包中)
  */
 import prompts from 'prompts';
 import { readFileSync, writeFileSync, existsSync, mkdirSync, copyFileSync, chmodSync, appendFileSync, unlinkSync } from 'fs';
@@ -386,18 +386,18 @@ async function generateConfig(config, cli = {}) {
   }
 
   // ── 卸载脚本（本地副本，与安装版本绑定） ──
-  const uninstallMjs = `${PACKAGE_SCRIPTS_DIR}/uninstall.mjs`;
-  const uninstallSh = `${CONFIG_DIR}/uninstall.sh`;
-  const uninstallMjsDest = `${CONFIG_DIR}/uninstall.mjs`;
+  const undeployMjs = `${PACKAGE_SCRIPTS_DIR}/undeploy.mjs`;
+  const undeploySh = `${CONFIG_DIR}/undeploy.sh`;
+  const undeployMjsDest = `${CONFIG_DIR}/undeploy.mjs`;
   try {
     copyFileSync(uninstallMjs, uninstallMjsDest);
     writeFileSync(uninstallSh, `#!/usr/bin/env bash
 set -euo pipefail
 CONFIG_DIR="\$(cd "\$(dirname "\$0")" && pwd)"
-exec node "\$CONFIG_DIR/uninstall.mjs" "\$@" <\$(tty)
+exec node "\$CONFIG_DIR/undeploy.mjs" "\$@" <\$(tty)
 `, 'utf-8');
     chmodSync(uninstallSh, 0o755);
-    console.log(`  ${green('✓')} 卸载脚本已复制: uninstall.sh`);
+    console.log(`  ${green('✓')} 卸载脚本已复制: undeploy.sh`);
   } catch (e) {
     console.log(`  ${yellow('⚠')} 卸载脚本复制失败: ${e.message}`);
   }
@@ -482,7 +482,7 @@ alias rb-stop='bash ${CONFIG_DIR}/pm2-stop-bot.sh'
 alias rb-restart='pm2 restart reasonix-bot'
 alias rb-logs='pm2 logs reasonix-bot'
 alias rb-status='pm2 status'
-alias rb-uninstall='bash ${CONFIG_DIR}/uninstall.sh'
+alias rb-undeploy='bash ${CONFIG_DIR}/undeploy.sh'
 ${ALIAS_MARKER_END}
 `;
 }
@@ -550,8 +550,8 @@ function printSummary() {
   console.log(`     ${dim('├──')} ecosystem.config.js   PM2 配置（含 API 密钥）`);
   console.log(`     ${dim('├──')} pm2-start-bot.sh     启动脚本`);
   console.log(`     ${dim('├──')} pm2-stop-bot.sh      停止脚本`);
-  console.log(`     ${dim('├──')} uninstall.sh         卸载脚本`);
-  console.log(`     ${dim('└──')} uninstall.mjs        卸载程序`);
+  console.log(`     ${dim('├──')} undeploy.sh         卸载脚本`);
+  console.log(`     ${dim('└──')} undeploy.mjs        卸载程序`);
   console.log();
   console.log(`  ${cyan('📁')}  ~/.reasonix/`);
   console.log(`     ${dim('├──')} config.toml          用户级配置（含 Bot 设置）`);
@@ -572,7 +572,7 @@ function printSummary() {
   console.log(`      pm2 logs reasonix-bot     ${dim('# 日志')}`);
   console.log(`      pm2 restart reasonix-bot  ${dim('# 重启')}`);
   console.log();
-  console.log(`   ④ 卸载: bash ~/.config/reasonix-bot/uninstall.sh 或 rb-uninstall`);
+  console.log(`   ④ 卸载: bash ~/.config/reasonix-bot/undeploy.sh 或 rb-undeploy`);
   console.log();
 }
 

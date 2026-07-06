@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
-# Reasonix 飞书 Bot — 一键安装/卸载脚本
-# 唯一推荐方式: npx @u1in/reasonix-feishu-deploy [--uninstall]
+# Reasonix 飞书 Bot — 一键部署/卸载脚本
+# 唯一推荐方式: npx @u1in/reasonix-feishu-deploy [--undeploy]
 # =============================================================================
 set -euo pipefail
 
@@ -18,13 +18,13 @@ SCRIPT_PATH="$(readlink -f "$0")"
 SCRIPT_DIR="$(dirname "$SCRIPT_PATH")"
 PACKAGE_DIR="$(dirname "$SCRIPT_DIR")"
 
-# ── 处理 --uninstall 标志 ──
-# 提取非 --uninstall 参数透传给子脚本
+# ── 处理 --undeploy 标志 ──
+# 提取非 --undeploy 参数透传给子脚本
 FILTERED_ARGS=()
 IS_QUIET=0
 for arg in "$@"; do
-  if [ "$arg" = "--uninstall" ]; then
-    UNINSTALL=1
+  if [ "$arg" = "--undeploy" ] || [ "$arg" = "--uninstall" ]; then
+    UNDEPLOY=1
   elif [ "$arg" = "--yes" ] || [ "$arg" = "-y" ]; then
     IS_QUIET=1
     FILTERED_ARGS+=("$arg")
@@ -39,23 +39,23 @@ if [ "$IS_QUIET" = "1" ]; then
   TTY_REDIR=""
 fi
 
-if [ "${UNINSTALL:-0}" = "1" ]; then
-  UNINSTALL_SCRIPT="$PACKAGE_DIR/scripts/uninstall.mjs"
-  if [ ! -f "$UNINSTALL_SCRIPT" ]; then
-    err "未找到卸载脚本: $UNINSTALL_SCRIPT"
+if [ "${UNDEPLOY:-0}" = "1" ]; then
+  UNDEPLOY_SCRIPT="$PACKAGE_DIR/scripts/undeploy.mjs"
+  if [ ! -f "$UNDEPLOY_SCRIPT" ]; then
+    err "未找到卸载脚本: $UNDEPLOY_SCRIPT"
     exit 1
   fi
-  exec node "$UNINSTALL_SCRIPT" "${FILTERED_ARGS[@]}" $TTY_REDIR
+  exec node "$UNDEPLOY_SCRIPT" "${FILTERED_ARGS[@]}" $TTY_REDIR
 fi
 
 # ── 确认本地文件完整（npx 模式下应有全部文件） ──
-if [ ! -f "$SCRIPT_DIR/setup.mjs" ] || [ ! -f "$PACKAGE_DIR/config/reasonix.toml" ]; then
+if [ ! -f "$SCRIPT_DIR/deploy.mjs" ] || [ ! -f "$PACKAGE_DIR/config/reasonix.toml" ]; then
   err "未找到安装文件，请通过 npx @u1in/reasonix-feishu-deploy 运行"
   exit 1
 fi
 ok "安装包已就绪"
 
-SETUP_SCRIPT="$PACKAGE_DIR/scripts/setup.mjs"
+DEPLOY_SCRIPT="$PACKAGE_DIR/scripts/deploy.mjs"
 
 # ── 读取版本号 ──
 DEPLOY_VERSION="$(sed -n 's/.*"version": "\([^"]*\)".*/\1/p' "$PACKAGE_DIR/package.json" 2>/dev/null || echo '?')"
@@ -83,10 +83,10 @@ echo ""
 info "启动交互式配置向导..."
 echo ""
 
-if [ -f "$SETUP_SCRIPT" ]; then
-  node "$SETUP_SCRIPT" "${FILTERED_ARGS[@]}" $TTY_REDIR
+if [ -f "$DEPLOY_SCRIPT" ]; then
+  node "$DEPLOY_SCRIPT" "${FILTERED_ARGS[@]}" $TTY_REDIR
 else
-  err "未找到向导脚本: $SETUP_SCRIPT"
+  err "未找到向导脚本: $DEPLOY_SCRIPT"
   err "请确认仓库完整后再试"
   exit 1
 fi
