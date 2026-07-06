@@ -1,6 +1,6 @@
 {
   "name": "@u1in/reasonix-feishu-deploy",
-  "version": "0.4.1",
+  "version": "0.4.2",
   "description": "🤖 一键部署 Reasonix AI Bot 接入飞书",
   "type": "module",
   "bin": {

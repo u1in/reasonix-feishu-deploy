@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [0.4.2](https://github.com/u1in/reasonix-feishu-deploy/compare/v0.4.1...v0.4.2) (2026-07-06)
+
+
+### 🚀 新功能
+
+* add step progress banner, clear screen between steps ([fb4db4e](https://github.com/u1in/reasonix-feishu-deploy/commit/fb4db4e7e68e96f23b4123edd4c17bad11080e50))
+
 ## [0.4.1](https://github.com/u1in/reasonix-feishu-deploy/compare/v0.4.0...v0.4.1) (2026-07-06)
 
 
