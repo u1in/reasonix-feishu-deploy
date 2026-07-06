@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [0.4.8](https://github.com/u1in/reasonix-feishu-deploy/compare/v0.4.7...v0.4.8) (2026-07-06)
+
+
+### 🚀 新功能
+
+* enhance config template to be fully self-contained ([14d589f](https://github.com/u1in/reasonix-feishu-deploy/commit/14d589fb557802ec0c38c21f1bd1e2f614bc93de))
+
 ## [0.4.7](https://github.com/u1in/reasonix-feishu-deploy/compare/v0.4.6...v0.4.7) (2026-07-06)
 
 
