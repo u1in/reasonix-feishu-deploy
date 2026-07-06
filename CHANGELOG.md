@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [0.4.7](https://github.com/u1in/reasonix-feishu-deploy/compare/v0.4.6...v0.4.7) (2026-07-06)
+
+
+### 📝 文档
+
+* add English README and Chinese README.zh.md with cross-links ([ca09e33](https://github.com/u1in/reasonix-feishu-deploy/commit/ca09e3353d744d001dbfca4591532429be02a6f3))
+
 ## [0.4.6](https://github.com/u1in/reasonix-feishu-deploy/compare/v0.4.5...v0.4.6) (2026-07-06)
 
 
