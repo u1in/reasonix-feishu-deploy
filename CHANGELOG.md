@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [0.1.7](https://github.com/u1in/reasonix-feishu-deploy/compare/v0.1.6...v0.1.7) (2026-07-06)
+
+
+### 🐛 修复
+
+* rb-uninstall 别名改为指向本地卸载脚本，与安装版本绑定 ([ce23410](https://github.com/u1in/reasonix-feishu-deploy/commit/ce23410f3fdba85ba521d9f49bfdb7e6f33a8ade))
+
 ## [0.1.6](https://github.com/u1in/reasonix-feishu-deploy/compare/v0.1.5...v0.1.6) (2026-07-06)
 
 
