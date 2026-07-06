@@ -4,18 +4,86 @@
 
 ## 快速开始
 
+### 一键安装
+
 ```bash
 npx @u1in/reasonix-feishu-deploy
 ```
 
-安装向导会自动完成：环境检查 → 密钥录入 → 配置文件生成 → PM2 启动。
+安装向导自动完成：环境检查 → 密钥录入 → 配置文件生成 → PM2 启动。
 
-安装过程中会提示输入以下密钥（也可安装后修改 `~/.config/reasonix-bot/.env`）：
+也可直接传参实现静默安装（跳过交互式提示）：
 
-| 密钥 | 必填 | 说明 |
-|------|------|------|
-| `DEEPSEEK_API_KEY` | ✅ | DeepSeek 平台 [申请](https://platform.deepseek.com/) |
-| `FEISHU_BOT_APP_SECRET` | ✅ | 飞书开放平台 → 应用 → 凭证与基础信息 |
+```bash
+npx @u1in/reasonix-feishu-deploy \
+  --app-id=cli_a5f8d2e1a3b4c0d0 \
+  --app-secret=xxxxx \
+  --api-key=sk-xxxxx \
+  --yes
+```
+
+完整参数列表见下方 [setup.mjs CLI 参数](#setupmjs-cli-参数)。
+
+### 日常管理
+
+```bash
+# ── PM2 命令（最常用） ──
+pm2 status                    # 查看状态
+pm2 logs reasonix-bot         # 查看实时日志
+pm2 restart reasonix-bot      # 重启
+pm2 stop reasonix-bot         # 停止
+pm2 start reasonix-bot        # 启动
+
+# ── 或通过 npm scripts（项目目录下） ──
+npm run start                  # 启动
+npm run stop                   # 停止
+
+# ── 或通过快捷脚本 ──
+~/.config/reasonix-bot/pm2-start-bot.sh    # 启动
+~/.config/reasonix-bot/pm2-stop-bot.sh     # 停止
+```
+
+### 查看日志
+
+```bash
+pm2 logs reasonix-bot
+```
+
+看到 `feishu sdk websocket connected` 表示连接成功。
+
+### 修改配置
+
+```bash
+vim ~/.config/reasonix-bot/reasonix.toml   # Reasonix 配置
+vim ~/.config/reasonix-bot/.env            # API 密钥
+```
+
+修改后重启 Bot：
+
+```bash
+pm2 restart reasonix-bot
+```
+
+### 卸载
+
+```bash
+npx @u1in/reasonix-feishu-deploy --uninstall
+```
+
+交互式卸载向导会逐步引导你删除 PM2 进程、配置文件、Shell 别名和全局 CLI。
+
+### Shell 别名
+
+安装时可选择添加 `rb-*` 快捷命令到 Shell 配置（`~/.zshrc` / `~/.bashrc`）：
+
+```bash
+rb-start        # 启动 Bot
+rb-stop         # 停止
+rb-restart      # 重启
+rb-logs         # 查看日志
+rb-status       # 查看状态
+rb-uninstall    # 卸载
+```
 
 ## 文件结构
 
@@ -34,34 +102,20 @@ reasonix-feishu-deploy/
     └── apikey.env.example    # API 密钥示例文件
 ```
 
-## 发布新版本
+安装后，运行时配置和脚本位于 `~/.config/reasonix-bot/`：
 
-> ⚠️ **LLM / AI Agent 请注意：** 发布新版本请使用下面的统一命令，不要单独执行 `npm version`、手动修改 CHANGELOG、或手动 `npm publish`。
-
-```bash
-# Bump patch 版（默认，自动从 commits 推断版本类型）
-npm run release
-
-# 强制指定版本类型
-npm run release:minor   # 次版本
-npm run release:major   # 主版本
-
-# 仅预览（不做任何修改）
-npm run release:dry
 ```
-
-一步完成：**更新版本号 → 生成 CHANGELOG（从 conventional commits）→ git commit + tag → `git push --follow-tags` → `npm publish`**。
-
-也等价于：
-```bash
-bash scripts/bump-version.sh patch
-bash scripts/bump-version.sh minor
-bash scripts/bump-version.sh major
+~/.config/reasonix-bot/
+├── .env                  # API 密钥
+├── reasonix.toml         # Reasonix 配置
+├── ecosystem.config.js   # PM2 进程配置
+├── pm2-start-bot.sh      # 启动脚本
+└── pm2-stop-bot.sh       # 停止脚本
 ```
 
 ## 安装流程
 
-只需运行 `npx @u1in/reasonix-feishu-deploy`，安装脚本会自动完成以下步骤：
+一键安装的背后，脚本自动完成以下步骤：
 
 | 步骤 | 说明 |
 |------|------|
@@ -72,13 +126,7 @@ bash scripts/bump-version.sh major
 | 5. Shell 别名 | 可选添加 rb-* 快捷命令到 Shell 配置 |
 | 6. 启动 Bot | 通过 PM2 启动 reasonix-bot |
 
-安装脚本自动调用 `setup.mjs` 交互式向导完成所有配置。
-
-CLI 参数也可直接传给 `npx`，会自动透传给安装向导：
-
-```bash
-npx @u1in/reasonix-feishu-deploy --app-id=cli_a5f8d2e1 --yes
-```
+安装脚本调用 `setup.mjs` 交互式向导完成所有配置。
 
 ## setup.mjs CLI 参数
 
@@ -108,105 +156,36 @@ node scripts/setup.mjs \
 | `--uninstall` | 调用卸载流程，删除配置、PM2 进程、Shell 别名等 |
 | `--yes` / `-y` | 跳过所有确认提示和飞书配置检查 |
 
-## 卸载
-
-```bash
-npx @u1in/reasonix-feishu-deploy --uninstall
-```
-
-交互式卸载向导会逐步引导你删除 PM2 进程、配置文件、Shell 别名和全局 CLI。
-
-## 安装后的目录结构
-
-安装后，所有运行时配置和脚本位于 `~/.config/reasonix-bot/`：
-
-```
-~/.config/reasonix-bot/
-├── .env                  # API 密钥（已生成）
-├── reasonix.toml         # Reasonix 配置（已生成）
-├── ecosystem.config.js   # PM2 进程配置
-├── pm2-start-bot.sh      # 启动脚本
-└── pm2-stop-bot.sh       # 停止脚本
-```
-
-安装时还可选择添加 `rb-*` 快捷别名到 Shell 配置（`~/.zshrc` / `~/.bashrc`）：
-
-```bash
-rb-start        # 启动 Bot
-rb-stop         # 停止 Bot
-rb-restart      # 重启 Bot
-rb-logs         # 查看日志
-rb-status       # 查看状态
-rb-uninstall    # 一键卸载
-```
-
-## 日常管理
-
-### 通过 npm scripts
-
-```bash
-# 从项目根目录
-npm run start   # 启动
-npm run stop    # 停止
-```
-
-### 通过 PM2 命令
-
-```bash
-pm2 status                  # 查看所有进程状态
-pm2 logs reasonix-bot       # 查看实时日志
-pm2 stop reasonix-bot       # 停止
-pm2 restart reasonix-bot    # 重启
-pm2 delete reasonix-bot     # 删除进程
-```
-
-### 通过安装脚本
-
-```bash
-~/.config/reasonix-bot/pm2-start-bot.sh    # 启动
-~/.config/reasonix-bot/pm2-stop-bot.sh     # 停止
-```
-
-### 通过 rb-* 别名（安装时可选择添加）
-
-```bash
-rb-start        # 启动
-rb-stop         # 停止
-rb-restart      # 重启
-rb-logs         # 查看日志
-rb-status       # 查看状态
-rb-uninstall    # 卸载
-```
-
-### 修改配置
-
-```bash
-vim ~/.config/reasonix-bot/reasonix.toml   # 修改 Reasonix 配置
-vim ~/.config/reasonix-bot/.env            # 修改 API 密钥
-```
-
-修改后重启 Bot 生效：
-
-```bash
-pm2 restart reasonix-bot
-```
-
-## 卸载
-
-```bash
-npx @u1in/reasonix-feishu-deploy --uninstall
-
-# 或通过安装时配置的别名
-rb-uninstall
-```
-
-卸载脚本会清理：PM2 进程、`~/.config/reasonix-bot/` 目录、Shell 别名、可选的 reasonix CLI 和 PM2 全局包。
-
 ## 前提条件
 
 - Linux 操作系统（支持 apt/yum 包管理）
 - root 或 sudo 权限（安装 Node.js、配置开机自启时需要）
 - 可选的飞书应用凭证（已注册并获取 App ID + App Secret）
+
+## 发布新版本
+
+> ⚠️ **LLM / AI Agent 请注意：** 发布新版本请使用下面的统一命令，不要单独执行 `npm version`、手动修改 CHANGELOG、或手动 `npm publish`。
+
+```bash
+# Bump patch 版（默认，自动从 commits 推断版本类型）
+npm run release
+
+# 强制指定版本类型
+npm run release:minor   # 次版本
+npm run release:major   # 主版本
+
+# 仅预览（不做任何修改）
+npm run release:dry
+```
+
+一步完成：**更新版本号 → 生成 CHANGELOG（从 conventional commits）→ git commit + tag → `git push --follow-tags` → `npm publish`**。
+
+也等价于：
+```bash
+bash scripts/bump-version.sh patch
+bash scripts/bump-version.sh minor
+bash scripts/bump-version.sh major
+```
 
 ## 相关链接
 
