@@ -286,11 +286,10 @@ async function generateConfig(config, cli = {}) {
   // ── (LoadForRoot(".")) 能加载 ~/.config/reasonix-bot/reasonix.toml
   // ── 作为项目级配置，从而 [bot] enabled = true 覆盖用户级配置中的 false ──
 
-  // PM2 ecosystem
+  // PM2 ecosystem — 每次都重新生成，确保 cwd/reasonix 路径等始终正确
   const ecosystemFile = `${CONFIG_DIR}/ecosystem.config.js`;
-  if (!existsSync(ecosystemFile)) {
-    const REASONIX_BIN = execSync('which reasonix', { encoding: 'utf-8' }).trim();
-    const ecosystem = `module.exports = {
+  const REASONIX_BIN = execSync('which reasonix', { encoding: 'utf-8' }).trim();
+  const ecosystem = `module.exports = {
   apps: [{
     name: 'reasonix-bot',
     script: '${REASONIX_BIN}',
@@ -304,11 +303,8 @@ async function generateConfig(config, cli = {}) {
   }]
 };
 `;
-    writeFileSync(ecosystemFile, ecosystem, 'utf-8');
-    console.log(`  ${green('✓')} PM2 配置已生成: ~/.config/reasonix-bot/ecosystem.config.js`);
-  } else {
-    console.log(`  ${green('✓')} PM2 配置已存在，跳过`);
-  }
+  writeFileSync(ecosystemFile, ecosystem, 'utf-8');
+  console.log(`  ${green('✓')} PM2 配置已生成: ~/.config/reasonix-bot/ecosystem.config.js`);
 
   try {
     copyFileSync(`${PACKAGE_SCRIPTS_DIR}/pm2-start-bot.sh`, `${CONFIG_DIR}/pm2-start-bot.sh`);
