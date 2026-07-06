@@ -47,9 +47,6 @@ function parseArgs() {
     if (arg === '--no-remove-reasonix') { cli.removeReasonix = false; continue; }
     if (arg === '--remove-pm2')    { cli.removePm2 = true; continue; }
     if (arg === '--no-remove-pm2') { cli.removePm2 = false; continue; }
-    if (arg === '--force-remove-dir')    { cli.forceRemoveDir = true; continue; }
-    if (arg === '--no-force-remove-dir') { cli.forceRemoveDir = false; continue; }
-
     if (arg.startsWith('--')) { console.warn(`  ${yellow('⚠')} 未知参数: ${arg}`); }
   }
   return cli;
@@ -220,6 +217,14 @@ async function main() {
       try { unlinkSync(fp); console.log(`  ${green('✓')} 已删除: ${file}`); } catch { /* 不存在 */ }
     }
     console.log(`  ${dim('─')} 配置文件已清理`);
+
+    // ─── 清理目录 ───
+    try {
+      rmSync(CONFIG_DIR, { recursive: true, force: true });
+      console.log(`  ${green('✓')} 已删除: ~/.config/reasonix-bot/`);
+    } catch (e) {
+      console.log(`  ${red('✗')} 删除失败: ${e.message}`);
+    }
   }
 
   // ─── Shell 别名 ───
@@ -299,54 +304,17 @@ async function main() {
   const USER_REASONIX_CONFIG = `${HOME}/.reasonix/config.toml`;
   const USER_REASONIX_BAK = `${USER_REASONIX_CONFIG}.deploy-bak`;
   if (existsSync(USER_REASONIX_BAK)) {
-    const { mtime } = statSync(USER_REASONIX_BAK);
-    const ts = `${mtime.getFullYear()}年${mtime.getMonth() + 1}月${mtime.getDate()}日${mtime.getHours()}时${mtime.getMinutes()}分${mtime.getSeconds()}秒`;
-    let restoreUserConfig;
-    const r = await prompts({ type: 'confirm', name: 'v', message: `是否还原 ${ts} 备份的 ~/.reasonix/config.toml？`, hint: '选否则保留合并后的配置', initial: true }, { onCancel });
-    restoreUserConfig = r.v;
-    if (restoreUserConfig) {
-      try {
-        const bakContent = readFileSync(USER_REASONIX_BAK, 'utf-8');
-        writeFileSync(USER_REASONIX_CONFIG, bakContent, 'utf-8');
-        unlinkSync(USER_REASONIX_BAK);
-        console.log(`  ${green('✓')} 已还原: ~/.reasonix/config.toml`);
-        console.log(`  ${green('✓')} 已删除: ~/.reasonix/config.toml.deploy-bak`);
-      } catch (e) {
-        console.log(`  ${yellow('⚠')} 还原失败: ${e.message}`);
-      }
-    } else {
-      console.log(`  ${dim('─')} 保留合并后的 ~/.reasonix/config.toml`);
+    try {
+      const bakContent = readFileSync(USER_REASONIX_BAK, 'utf-8');
+      writeFileSync(USER_REASONIX_CONFIG, bakContent, 'utf-8');
+      unlinkSync(USER_REASONIX_BAK);
+      console.log(`  ${green('✓')} 已还原: ~/.reasonix/config.toml`);
+      console.log(`  ${green('✓')} 已删除: ~/.reasonix/config.toml.deploy-bak`);
+    } catch (e) {
+      console.log(`  ${yellow('⚠')} 还原失败: ${e.message}`);
     }
   } else {
     console.log(`  ${dim('─')} 未发现 ~/.reasonix/config.toml 备份，跳过还原`);
-  }
-
-  // ─── 清理空目录 ───
-  if (existsSync(CONFIG_DIR)) {
-    const remaining = listDir(CONFIG_DIR);
-    if (remaining.length === 0) {
-      try {
-        rmSync(CONFIG_DIR, { recursive: true, force: true });
-        console.log(`  ${green('✓')} 已删除空目录: ~/.config/reasonix-bot/`);
-      } catch {}
-    } else {
-      console.log(`\n  ${dim('剩余文件:')} ${remaining.join(', ')}`);
-      let removeDir;
-      if (cli.forceRemoveDir !== undefined) {
-        removeDir = cli.forceRemoveDir;
-      } else {
-        const r = await prompts({ type: 'confirm', name: 'v', message: `~/.config/reasonix-bot/ 还有 ${remaining.length} 个文件，是否强制删除整个目录？`, initial: false });
-        removeDir = r.v;
-      }
-      if (removeDir) {
-        try {
-          rmSync(CONFIG_DIR, { recursive: true, force: true });
-          console.log(`  ${green('✓')} 已强制删除: ~/.config/reasonix-bot/`);
-        } catch (e) {
-          console.log(`  ${red('✗')} 删除失败: ${e.message}`);
-        }
-      }
-    }
   }
 
   // ─── 完成 ───

@@ -86,9 +86,9 @@ async function ensureEnvironment() {
   }
 }
 
-// ── 步骤 2: 交互式配置收集 ──
-async function collectConfig(cli = {}) {
-  title('飞书 Bot 配置');
+// ── 步骤 2: 飞书 App ID ──
+async function collectAppId(cli = {}, config = {}) {
+  stepBanner(2, 10, '飞书 App ID');
   console.log(`  ${dim('用方向键 ↑↓ 选择，回车确认，Ctrl+C 随时取消')}\n`);
 
   const onCancel = () => {
@@ -96,15 +96,25 @@ async function collectConfig(cli = {}) {
     process.exit(0);
   };
 
-  // ─── 1. 飞书 App ID ───
   let appId = cli.appId || '';
   if (!appId) {
     const r = await prompts({ type: 'text', name: 'v', message: '请输入飞书 App ID', hint: 'https://open.feishu.cn/app → 选择你的应用 → 凭证与基础信息' }, { onCancel });
     appId = r.v || '';
   }
   if (appId) console.log(`  ${green('✓')} 已设置`);
+  config.appId = appId;
+}
 
-  // ─── 2. 飞书 App Secret ───
+// ── 步骤 3: 飞书 App Secret ──
+async function collectAppSecret(cli = {}, config = {}) {
+  stepBanner(3, 10, '飞书 App Secret');
+  console.log(`  ${dim('用方向键 ↑↓ 选择，回车确认，Ctrl+C 随时取消')}\n`);
+
+  const onCancel = () => {
+    console.log(`\n  ${yellow('⚠')} 向导已取消`);
+    process.exit(0);
+  };
+
   let feishuSecret = cli.appSecret || '';
   if (!feishuSecret) {
     const r = await prompts({ type: 'password', name: 'v', message: '请输入飞书 App Secret', hint: 'https://open.feishu.cn/app → 选择你的应用 → 凭证与基础信息' }, { onCancel });
@@ -112,16 +122,47 @@ async function collectConfig(cli = {}) {
   } else {
     console.log(`  ${green('✓')} 飞书 App Secret ${dim('(已配置)')}`);
   }
+  config.feishuSecret = feishuSecret;
+  config.mode = 'websocket';
+}
 
-  // ─── 3. 飞书配置检查（一次性确认） ───
+// ── 步骤 4: 飞书配置检查 ──
+async function confirmFeishuConfig(_cli = {}, _config = {}) {
+  stepBanner(4, 10, '飞书配置检查');
+  console.log(`  ${dim('用方向键 ↑↓ 选择，回车确认，Ctrl+C 随时取消')}\n`);
+
+  const onCancel = () => {
+    console.log(`\n  ${yellow('⚠')} 向导已取消`);
+    process.exit(0);
+  };
+
   await prompts({ type: 'confirm', name: 'v', message: '请确认飞书机器人已完成以下三项配置:\n\n  📋 ① 权限已添加:\n     • im:message:readonly\n     • im:message.p2p_msg:readonly\n\n  📋 ② 事件订阅方式选择了「长连接(WebSocket)」:\n     • 请确认订阅方式为「通过长连接接收事件」\n\n  📋 ③ 事件已添加:\n     • im.message.receive_v1\n\n  👉 https://open.feishu.cn/app → 选择你的应用 检查\n  确认以上三项均已配置完成？', initial: true }, { onCancel });
+}
 
-  // ─── 4. 安全风险提示 ───
+// ── 步骤 5: 安全策略确认 ──
+async function confirmSecurity(_cli = {}, _config = {}) {
+  stepBanner(5, 10, '安全策略确认');
+  console.log(`  ${dim('用方向键 ↑↓ 选择，回车确认，Ctrl+C 随时取消')}\n`);
+
+  const onCancel = () => {
+    console.log(`\n  ${yellow('⚠')} 向导已取消`);
+    process.exit(0);
+  };
 
   await prompts({ type: 'confirm', name: 'v', message: '⚠️  安全设置说明\n\n本 Bot 默认允许所有飞书用户使用。\n\n  • 建议在飞书开放平台 → 应用 → 权限管理 中设置「应用使用范围」\n    来控制谁能使用此 Bot，而非在此处配置白名单。\n\n  • 若确实需要使用 Reasonix 内置白名单限制用户（Open ID）\n    或调整群聊 @Bot 回复行为，请安装后手动编辑:\n    ~/.reasonix/config.toml 的 [bot.allowlist] 和 [bot.feishu] 节\n\n  我已了解上述安全建议', initial: true }, { onCancel });
   console.log(`  ${green('✓')} 安全策略: 允许所有用户（如有白名单需求请安装后修改 ~/.reasonix/config.toml）`);
+}
 
-  // ─── 5. DeepSeek API Key ───
+// ── 步骤 6: DeepSeek API Key ──
+async function collectDeepSeekKey(cli = {}, config = {}) {
+  stepBanner(6, 10, 'DeepSeek API Key');
+  console.log(`  ${dim('用方向键 ↑↓ 选择，回车确认，Ctrl+C 随时取消')}\n`);
+
+  const onCancel = () => {
+    console.log(`\n  ${yellow('⚠')} 向导已取消`);
+    process.exit(0);
+  };
+
   let deepseekKey = cli.apiKey || '';
   if (!deepseekKey) {
     const r = await prompts({ type: 'password', name: 'v', message: '请输入 DeepSeek API Key', hint: 'https://platform.deepseek.com → API Keys' }, { onCancel });
@@ -129,8 +170,7 @@ async function collectConfig(cli = {}) {
   } else {
     console.log(`  ${green('✓')} DeepSeek API Key ${dim('(已配置)')}`);
   }
-
-  return { appId, mode: 'websocket', feishuSecret, deepseekKey };
+  config.deepseekKey = deepseekKey;
 }
 
 // ── 合并用户级 Reasonix 配置（保留用户非 Bot 设置） ──
@@ -481,23 +521,31 @@ function printSummary(hasAliases) {
 
 async function main() {
   const cli = parseArgs();
+  const config = {};
 
-  stepBanner(1, 6, '环境准备');
+  stepBanner(1, 10, '环境准备');
   await ensureEnvironment();
 
-  stepBanner(2, 6, '飞书 Bot 配置');
-  const config = await collectConfig(cli);
+  await collectAppId(cli, config);
 
-  stepBanner(3, 6, '配置确认');
+  await collectAppSecret(cli, config);
+
+  await confirmFeishuConfig(cli, config);
+
+  await confirmSecurity(cli, config);
+
+  await collectDeepSeekKey(cli, config);
+
+  stepBanner(7, 10, '配置确认');
   await confirmConfig(config, cli);
 
-  stepBanner(4, 6, '生成配置');
+  stepBanner(8, 10, '生成配置');
   await generateConfig(config, cli);
 
-  stepBanner(5, 6, 'Shell 别名');
+  stepBanner(9, 10, 'Shell 别名');
   const hasAliases = await setupShellAliases(cli);
 
-  stepBanner(6, 6, '部署完成');
+  stepBanner(10, 10, '部署完成');
   printSummary(hasAliases);
 }
 

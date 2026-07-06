@@ -38,10 +38,6 @@ npx @u1in/reasonix-feishu-deploy \
 ```bash
 # 交互式卸载
 npx @u1in/reasonix-feishu-deploy --undeploy
-
-# 卸载并清理全部
-npx @u1in/reasonix-feishu-deploy --undeploy \
-  --force-remove-dir
 ```
 
 ### 卸载参数
@@ -50,7 +46,6 @@ npx @u1in/reasonix-feishu-deploy --undeploy \
 |------|------|
 | `--remove-reasonix` / `--no-remove-reasonix` | 卸载 reasonix CLI（默认否） |
 | `--remove-pm2` / `--no-remove-pm2` | 卸载 PM2（默认否） |
-| `--force-remove-dir` / `--no-force-remove-dir` | 强制删除配置目录（默认否） |
 
 > 卸载时会询问是否还原 `~/.reasonix/config.toml` 到备份时的状态（安装时会自动备份 `config.toml.deploy-bak`）。
 
