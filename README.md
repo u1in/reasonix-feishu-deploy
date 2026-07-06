@@ -38,7 +38,8 @@ reasonix-feishu-deploy/
 ├── scripts/
 │   ├── install.sh            # 🚀 一键安装脚本（入口）
 │   ├── setup.mjs             # 交互式 Node.js 配置向导
-│   ├── uninstall.mjs         # 卸载脚本
+│   ├── uninstall.sh          # 🗑️ 一键卸载脚本（入口）
+│   ├── uninstall.mjs         # 交互式卸载向导
 │   ├── pm2-start-bot.sh      # PM2 启动脚本
 │   └── pm2-stop-bot.sh       # PM2 停止脚本
 └── config/
@@ -58,9 +59,37 @@ reasonix-feishu-deploy/
 | 2. 安装 reasonix CLI | `npm i -g reasonix@next` |
 | 3. 配置 reasonix | 生成 `~/.config/reasonix-bot/config.toml` + 交互式录入 API 密钥 |
 | 4. 配置 PM2 守护进程 | 安装 PM2、生成 ecosystem 配置、可选开机自启 |
-| 5. 启动 Bot | 通过 PM2 启动 reasonix-bot |
+| 5. Shell 别名 | 可选添加 rb-* 快捷命令到 Shell 配置 |
+| 6. 启动 Bot | 通过 PM2 启动 reasonix-bot |
 
 安装脚本自动调用 `setup.mjs` 交互式向导完成所有配置。
+
+## setup.mjs CLI 参数
+
+`setup.mjs` 支持命令行参数传递配置值，无需交互输入，适合自动化安装：
+
+```bash
+# 全自动安装（无交互）
+node scripts/setup.mjs \
+  --app-id=cli_a5f8d2e1a3b4c0d0 \
+  --app-secret=xxxxx \
+  --api-key=sk-xxxxx \
+  --start \
+  --yes
+```
+
+| 参数 | 说明 |
+|------|------|
+| `--app-id <id>` | 飞书 App ID |
+| `--app-secret <secret>` | 飞书 App Secret（自动保存到 .env） |
+| `--api-key <key>` | DeepSeek API Key（自动保存到 .env） |
+| `--allow-all` / `--no-allow-all` | 白名单策略（默认允许所有用户） |
+| `--require-mention` / `--no-require-mention` | 群聊是否需要 @Bot 才回复 |
+| `--users <id1,id2,...>` | 指定允许的飞书用户 Open ID |
+| `--startup` / `--no-startup` | PM2 开机自启 |
+| `--start` / `--no-start` | 安装后是否立即启动 Bot |
+| `--add-aliases` / `--no-add-aliases` | 是否添加 rb-* 别名 |
+| `--yes` / `-y` | 跳过所有确认提示和飞书配置检查 |
 
 ## 安装后的目录结构
 
@@ -72,7 +101,19 @@ reasonix-feishu-deploy/
 ├── config.toml           # Reasonix 配置（已生成）
 ├── ecosystem.config.js   # PM2 进程配置
 ├── pm2-start-bot.sh      # 启动脚本
-└── pm2-stop-bot.sh       # 停止脚本
+├── pm2-stop-bot.sh       # 停止脚本
+└── uninstall.sh          # 卸载脚本
+```
+
+安装时还可选择添加 `rb-*` 快捷别名到 Shell 配置（`~/.zshrc` / `~/.bashrc`）：
+
+```bash
+rb-start        # 启动 Bot
+rb-stop         # 停止 Bot
+rb-restart      # 重启 Bot
+rb-logs         # 查看日志
+rb-status       # 查看状态
+rb-uninstall    # 一键卸载
 ```
 
 ## 日常管理
@@ -102,6 +143,17 @@ pm2 delete reasonix-bot     # 删除进程
 ~/.config/reasonix-bot/pm2-stop-bot.sh     # 停止
 ```
 
+### 通过 rb-* 别名（安装时可选择添加）
+
+```bash
+rb-start        # 启动
+rb-stop         # 停止
+rb-restart      # 重启
+rb-logs         # 查看日志
+rb-status       # 查看状态
+rb-uninstall    # 卸载
+```
+
 ### 修改配置
 
 ```bash
@@ -118,14 +170,17 @@ pm2 restart reasonix-bot
 ## 卸载
 
 ```bash
-# 从项目目录运行
-node scripts/uninstall.mjs
+# 远程一键卸载
+curl -fsSL https://raw.githubusercontent.com/u1in/reasonix-feishu-deploy/main/scripts/uninstall.sh | bash
+
+# 或从项目目录运行
+bash scripts/uninstall.sh
 
 # 或通过 npm script
 npm run uninstall
 ```
 
-卸载脚本会清理：PM2 进程、`~/.config/reasonix-bot/` 目录、可选的 reasonix CLI 和 PM2 全局包。
+卸载脚本会清理：PM2 进程、`~/.config/reasonix-bot/` 目录、Shell 别名、可选的 reasonix CLI 和 PM2 全局包。
 
 ## 前提条件
 
