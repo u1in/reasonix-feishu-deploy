@@ -4,14 +4,21 @@
 
 ## 快速开始
 
+### 方式一：本地运行（克隆仓库后）
+
 ```bash
-# 方式一：本地运行（克隆仓库后）
 bash scripts/install.sh
+```
 
-# 方式二：远程一键安装（无需克隆仓库）
+### 方式二：远程一键安装（无需克隆仓库）
+
+```bash
 curl -fsSL https://raw.githubusercontent.com/u1in/reasonix-feishu-deploy/main/scripts/install.sh | bash
+```
 
-# 方式三：国内加速安装（ghproxy 代理）
+### 方式三：国内加速安装（ghproxy 代理）
+
+```bash
 curl -fsSL https://ghproxy.net/https://raw.githubusercontent.com/u1in/reasonix-feishu-deploy/main/scripts/install.sh | bash
 ```
 
