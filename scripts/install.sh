@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 # =============================================================================
 # Reasonix 飞书 Bot — 一键安装脚本
-# 始终从 GitHub 拉取最新代码到临时目录执行安装。
-# 支持 curl | bash 和本地 bash scripts/install.sh 两种方式。
+# 推荐方式: npx @u1in/reasonix-feishu-deploy
+# 也支持:   bash scripts/install.sh（本地仓库）或 curl ... | bash（备选）
 # =============================================================================
 set -euo pipefail
 
@@ -14,89 +14,48 @@ ok()    { echo -e "${GREEN}✓${NC}  $*" >&2; }
 warn()  { echo -e "${YELLOW}⚠${NC}  $*" >&2; }
 err()   { echo -e "${RED}✗${NC}  $*" >&2; }
 
-# ── GitHub 代理（国内加速） ──
-GH_PROXY="https://ghproxy.net/"
-REPO_URL="https://github.com/u1in/reasonix-feishu-deploy.git"
-TAR_URL="https://api.github.com/repos/u1in/reasonix-feishu-deploy/tarball/main"
+# ── 确定包目录 ──
+SCRIPT_DIR="$(cd "$(dirname "$0")" 2>/dev/null && pwd)"
+PACKAGE_DIR="$(dirname "$SCRIPT_DIR")"
 
-# ── 克隆仓库到临时目录 ──
-clone_repo() {
-  local tmp_dir
-  tmp_dir="$(mktemp -d)"
-  info "正在获取最新安装包..."
+if [ -f "$SCRIPT_DIR/setup.mjs" ] && [ -f "$PACKAGE_DIR/config/reasonix.toml" ]; then
+  # 从 npm 包或 git 仓库运行 — 本地文件可用
+  :  # PACKAGE_DIR 已经正确
+elif [ -f "$PACKAGE_DIR/scripts/setup.mjs" ] && [ -f "$PACKAGE_DIR/config/reasonix.toml" ]; then
+  # $0 是 scripts/install.sh，dirname 得到 scripts/，再 dirname 得到包根目录
+  :  # PACKAGE_DIR 已经正确
+else
+  # curl | bash 模式，或本地文件不完整—从 GitHub 克隆
+  warn "未找到本地安装文件，正在从 GitHub 获取..."
+  TMP_DIR="$(mktemp -d)"
+  PACKAGE_DIR="$TMP_DIR"
+  cleanup() { rm -rf "$TMP_DIR"; }
+  trap cleanup EXIT
 
-  # 尝试 1: git clone 走代理（国内加速）
-  if git clone --depth 1 --single-branch "${GH_PROXY}${REPO_URL}" "$tmp_dir" 2>/dev/null; then
-    echo "$tmp_dir"
-    return
-  fi
-
-  # 尝试 2: git clone 直连
-  if git clone --depth 1 --single-branch "$REPO_URL" "$tmp_dir" 2>/dev/null; then
-    echo "$tmp_dir"
-    return
-  fi
-
-  # 回退：下载 tar 包
-  info "git 克隆失败，尝试下载压缩包..."
-  if command -v curl &>/dev/null; then
-    curl -fsSL "${GH_PROXY}${TAR_URL}" -o "$tmp_dir/repo.tar.gz" && download_extract "$tmp_dir" && return
-    curl -fsSL "$TAR_URL" -o "$tmp_dir/repo.tar.gz" && download_extract "$tmp_dir" && return
+  if git clone --depth 1 --single-branch "https://github.com/u1in/reasonix-feishu-deploy.git" "$TMP_DIR" 2>/dev/null; then
+    :  # clone 成功
+  elif command -v curl &>/dev/null; then
+    info "git 不可用，尝试下载压缩包..."
+    curl -fsSL "https://api.github.com/repos/u1in/reasonix-feishu-deploy/tarball/main" -o "$TMP_DIR/repo.tar.gz" && \
+      tar xzf "$TMP_DIR/repo.tar.gz" -C "$TMP_DIR" --strip-components=1 && \
+      rm -f "$TMP_DIR/repo.tar.gz"
   elif command -v wget &>/dev/null; then
-    wget -qO "$tmp_dir/repo.tar.gz" "${GH_PROXY}${TAR_URL}" && download_extract "$tmp_dir" && return
-    wget -qO "$tmp_dir/repo.tar.gz" "$TAR_URL" && download_extract "$tmp_dir" && return
-  fi
-
-  err "下载失败，请检查网络连接后重试"
-  rm -rf "$tmp_dir"
-  exit 1
-}
-
-download_extract() {
-  local tmp_dir="$1"
-  local extract_dir="$tmp_dir/extracted"
-  mkdir -p "$extract_dir"
-  tar xzf "$tmp_dir/repo.tar.gz" -C "$extract_dir" --strip-components=1 2>/dev/null || return 1
-  rm -f "$tmp_dir/repo.tar.gz"
-  # 把内容移到 tmp_dir 根目录
-  mv "$extract_dir"/* "$tmp_dir" 2>/dev/null || true
-  rm -rf "$extract_dir"
-}
-
-# ── 安装 Node.js（如果缺失） ──
-install_node() {
-  warn "未找到 Node.js，正在通过 nvm 安装 Node 22 LTS..."
-  local nvm_url="${GH_PROXY}https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.4/install.sh"
-  if command -v curl &>/dev/null; then
-    curl -fsSL "$nvm_url" | bash
-  elif command -v wget &>/dev/null; then
-    wget -qO- "$nvm_url" | bash
+    info "git 不可用，尝试下载压缩包..."
+    wget -qO "$TMP_DIR/repo.tar.gz" "https://api.github.com/repos/u1in/reasonix-feishu-deploy/tarball/main" && \
+      tar xzf "$TMP_DIR/repo.tar.gz" -C "$TMP_DIR" --strip-components=1 && \
+      rm -f "$TMP_DIR/repo.tar.gz"
   else
-    err "需要 curl 或 wget 来安装 nvm"
+    err "下载失败，请检查网络连接后重试"
     exit 1
   fi
-  export NVM_DIR="$HOME/.nvm"
-  [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
-  nvm install 22
-  nvm use 22
-  nvm alias default 22
-}
+fi
 
-# ═══════════════════════════════════════════════════════════
-# Main
-# ═══════════════════════════════════════════════════════════
-
-# 克隆最新代码到临时目录
-CLONE_DIR="$(clone_repo)"
-PACKAGE_DIR="$CLONE_DIR"
-cleanup() { rm -rf "$CLONE_DIR"; }
-trap cleanup EXIT
 ok "安装包已就绪"
+
+SETUP_SCRIPT="$PACKAGE_DIR/scripts/setup.mjs"
 
 # ── 读取版本号 ──
 DEPLOY_VERSION="$(sed -n 's/.*"version": "\([^"]*\)".*/\1/p' "$PACKAGE_DIR/package.json" 2>/dev/null || echo '?')"
-
-SETUP_SCRIPT="$PACKAGE_DIR/scripts/setup.mjs"
 
 # ── Banner ──
 echo ""
@@ -110,16 +69,17 @@ echo ""
 
 # Step 1: Node.js
 if ! command -v node &>/dev/null; then
-  install_node
-else
-  NODE_VER=$(node -v | sed 's/v//' | cut -d. -f1)
-  if [ "$NODE_VER" -lt 18 ]; then
-    warn "Node.js 版本过低 ($(node -v))，准备升级..."
-    install_node
-  else
-    ok "Node.js $(node -v)"
-  fi
+  warn "未找到 Node.js，请先安装 Node.js >= 18"
+  warn "推荐使用 nvm: curl -fsSL https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.4/install.sh | bash"
+  exit 1
 fi
+
+NODE_VER=$(node -v | sed 's/v//' | cut -d. -f1)
+if [ "$NODE_VER" -lt 18 ]; then
+  err "Node.js 版本过低 ($(node -v))，请升级到 >= 18"
+  exit 1
+fi
+ok "Node.js $(node -v)"
 
 # Step 2: 安装依赖（ESM import 不查找全局包，需在本地 node_modules 安装）
 info "检查依赖..."
