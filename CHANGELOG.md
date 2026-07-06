@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [0.4.5](https://github.com/u1in/reasonix-feishu-deploy/compare/v0.4.4...v0.4.5) (2026-07-06)
+
+
+### ♻️ 重构
+
+* remove redundant config.toml sync and undeploy.sh ([e05c7bb](https://github.com/u1in/reasonix-feishu-deploy/commit/e05c7bb3b6c3434aee4d09eac4804dff9860eaad))
+
 ## [0.4.4](https://github.com/u1in/reasonix-feishu-deploy/compare/v0.4.3...v0.4.4) (2026-07-06)
 
 
