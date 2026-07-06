@@ -4,25 +4,31 @@
 
 ## 快速开始
 
-### 方式一：npx 一键安装（推荐）
+### 方式一：npm create（推荐）
+
+```bash
+npm create @u1in/reasonix-feishu-deploy
+```
+
+### 方式二：npx 直接运行
 
 ```bash
 npx @u1in/reasonix-feishu-deploy
 ```
 
-### 方式二：本地运行（克隆仓库后）
+### 方式三：本地运行（克隆仓库后）
 
 ```bash
 bash scripts/install.sh
 ```
 
-### 方式三：远程 curl 安装（无需克隆仓库）
+### 方式四：远程 curl 安装（无需克隆仓库）
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/u1in/reasonix-feishu-deploy/main/scripts/install.sh | bash
 ```
 
-### 方式四：国内加速安装（ghproxy 代理）
+### 方式五：国内加速安装（ghproxy 代理）
 
 ```bash
 curl -fsSL https://ghproxy.net/https://raw.githubusercontent.com/u1in/reasonix-feishu-deploy/main/scripts/install.sh | bash
