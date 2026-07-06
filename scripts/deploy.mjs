@@ -59,6 +59,18 @@ function title(text) {
   console.log(`\n${bold(cyan('━━━ ' + text + ' ━━━'))}\n`);
 }
 
+function stepBanner(current, total, label) {
+  console.clear();
+  const bar = Array.from({ length: total }, (_, i) => i < current ? green('●') : dim('○')).join(' ');
+  console.log(`\n${green('  ╭──────────────────────────────────────────────╮')}`);
+  console.log(`${green('  │')}  ${bold('🤖  Reasonix 飞书 Bot — 部署向导')}      ${green('│')}`);
+  console.log(`${green('  │')}                                               ${green('│')}`);
+  console.log(`${green('  │')}  ${dim('步骤')} ${bar}  ${cyan(`${current}/${total}`)}      ${green('│')}`);
+  console.log(`${green('  │')}  ${bold(cyan(label))}${' '.repeat(40 - label.length)}${green('│')}`);
+  console.log(`${green('  ╰──────────────────────────────────────────────╯')}`);
+  console.log();
+}
+
 // ── 步骤 1: 环境准备 ──
 async function ensureEnvironment() {
   title('环境准备');
@@ -506,32 +518,22 @@ function printSummary(hasAliases) {
 async function main() {
   const cli = parseArgs();
 
-  console.clear();
-  console.log(`\n${green('  ╭──────────────────────────────────────────────╮')}`);
-  console.log(`${green('  │')}                                              ${green('│')}`);
-  console.log(`${green('  │')}   🤖  Reasonix 飞书 Bot — 部署向导          ${green('│')}`);
-  console.log(`${green('  │')}                                              ${green('│')}`);
-  console.log(`${green('  │')}   用方向键 ↑↓ 选择，回车确认                 ${green('│')}`);
-  console.log(`${green('  │')}                                              ${green('│')}`);
-  console.log(`${green('  ╰──────────────────────────────────────────────╯')}`);
-  console.log();
-
-  // 1. 环境准备
+  stepBanner(1, 6, '环境准备');
   await ensureEnvironment();
 
-  // 2. 收集配置（含密钥）
+  stepBanner(2, 6, '飞书 Bot 配置');
   const config = await collectConfig(cli);
 
-  // 3. 确认
+  stepBanner(3, 6, '配置确认');
   await confirmConfig(config, cli);
 
-  // 4. 生成配置
+  stepBanner(4, 6, '生成配置');
   await generateConfig(config, cli);
 
-  // 5. Shell 别名
+  stepBanner(5, 6, 'Shell 别名');
   const hasAliases = await setupShellAliases(cli);
 
-  // 6. 完成
+  stepBanner(6, 6, '部署完成');
   printSummary(hasAliases);
 }
 

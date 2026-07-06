@@ -107,19 +107,22 @@ function listDir(dir) {
   }
 }
 
+function stepBanner(current, total, label) {
+  console.clear();
+  const bar = Array.from({ length: total }, (_, i) => i < current ? green('●') : dim('○')).join(' ');
+  console.log(`\n${red('  ╭──────────────────────────────────────────────╮')}`);
+  console.log(`${red('  │')}  ${bold('🗑️   Reasonix 飞书 Bot — 卸载向导')}      ${red('│')}`);
+  console.log(`${red('  │')}                                               ${red('│')}`);
+  console.log(`${red('  │')}  ${dim('步骤')} ${bar}  ${cyan(`${current}/${total}`)}      ${red('│')}`);
+  console.log(`${red('  │')}  ${bold(cyan(label))}${' '.repeat(40 - label.length)}${red('│')}`);
+  console.log(`${red('  ╰──────────────────────────────────────────────╯')}`);
+  console.log();
+}
+
 async function main() {
   const cli = parseArgs();
 
-  console.clear();
-  console.log(`\n${red('  ╭──────────────────────────────────────────────╮')}`);
-  console.log(`${red('  │')}                                              ${red('│')}`);
-  console.log(`${red('  │')}   🗑️   Reasonix 飞书 Bot — 卸载向导          ${red('│')}`);
-  console.log(`${red('  │')}                                              ${red('│')}`);
-  console.log(`${red('  │')}   将还原 deploy 所做的修改                    ${red('│')}`);
-  console.log(`${red('  │')}                                              ${red('│')}`);
-  console.log(`${red('  ╰──────────────────────────────────────────────╯')}`);
-  console.log();
-
+  stepBanner(1, 5, '检测安装状态');
   const onCancel = () => {
     console.log(`\n  ${yellow('⚠')} 卸载已取消`);
     process.exit(0);
@@ -166,6 +169,7 @@ async function main() {
   }
 
   // ─── 确认卸载 ───
+  stepBanner(2, 5, '确认卸载');
   const { confirmed } = await prompts({
     type: 'confirm',
     name: 'confirmed',
@@ -179,6 +183,7 @@ async function main() {
   }
 
   // ── 停掉 PM2 进程（如有） ──
+  stepBanner(3, 5, '清理配置与数据');
   title('停掉 Bot 进程');
   try {
     execSync('pm2 stop reasonix-bot 2>/dev/null && pm2 delete reasonix-bot 2>/dev/null', { stdio: 'ignore' });
@@ -239,7 +244,7 @@ async function main() {
   }
 
   // ─── 全局 CLI ───
-  title('全局 CLI');
+  stepBanner(4, 5, '全局 CLI');
 
   const cliActions = [];
 
@@ -295,6 +300,7 @@ async function main() {
   }
 
   // ── Reasonix 用户级配置还原 ──
+  stepBanner(5, 5, '还原配置');
   const USER_REASONIX_CONFIG = `${HOME}/.reasonix/config.toml`;
   const USER_REASONIX_BAK = `${USER_REASONIX_CONFIG}.deploy-bak`;
   if (existsSync(USER_REASONIX_BAK)) {
@@ -349,6 +355,7 @@ async function main() {
   }
 
   // ─── 完成 ───
+  console.clear();
   console.log(`\n${red('  ╭──────────────────────────────────────────────╮')}`);
   console.log(`${red('  │')}                                              ${red('│')}`);
   console.log(`${red('  │')}   🗑️   卸载完成！                            ${red('│')}`);
