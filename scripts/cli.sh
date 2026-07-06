@@ -21,13 +21,23 @@ PACKAGE_DIR="$(dirname "$SCRIPT_DIR")"
 # ── 处理 --uninstall 标志 ──
 # 提取非 --uninstall 参数透传给子脚本
 FILTERED_ARGS=()
+IS_QUIET=0
 for arg in "$@"; do
   if [ "$arg" = "--uninstall" ]; then
     UNINSTALL=1
+  elif [ "$arg" = "--yes" ] || [ "$arg" = "-y" ]; then
+    IS_QUIET=1
+    FILTERED_ARGS+=("$arg")
   else
     FILTERED_ARGS+=("$arg")
   fi
 done
+
+# 静默模式：无需终端交互，跳过 </dev/tty
+TTY_REDIR="</dev/tty"
+if [ "$IS_QUIET" = "1" ]; then
+  TTY_REDIR=""
+fi
 
 if [ "${UNINSTALL:-0}" = "1" ]; then
   UNINSTALL_SCRIPT="$PACKAGE_DIR/scripts/uninstall.mjs"
@@ -35,7 +45,7 @@ if [ "${UNINSTALL:-0}" = "1" ]; then
     err "未找到卸载脚本: $UNINSTALL_SCRIPT"
     exit 1
   fi
-  exec node "$UNINSTALL_SCRIPT" "${FILTERED_ARGS[@]}" </dev/tty
+  exec node "$UNINSTALL_SCRIPT" "${FILTERED_ARGS[@]}" $TTY_REDIR
 fi
 
 # ── 确认本地文件完整（npx 模式下应有全部文件） ──
@@ -74,7 +84,7 @@ info "启动交互式配置向导..."
 echo ""
 
 if [ -f "$SETUP_SCRIPT" ]; then
-  node "$SETUP_SCRIPT" "${FILTERED_ARGS[@]}" </dev/tty
+  node "$SETUP_SCRIPT" "${FILTERED_ARGS[@]}" $TTY_REDIR
 else
   err "未找到向导脚本: $SETUP_SCRIPT"
   err "请确认仓库完整后再试"

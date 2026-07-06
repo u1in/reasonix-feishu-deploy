@@ -38,6 +38,35 @@ const REASONIX_DIR = `${HOME}/.reasonix`;
 const ALIAS_MARKER_START = '# >>> reasonix-bot';
 const ALIAS_MARKER_END   = '# <<< reasonix-bot';
 
+// ── CLI 参数解析 ──
+function parseArgs() {
+  const args = process.argv.slice(2);
+  const cli = { yes: false };
+  for (let i = 0; i < args.length; i++) {
+    const arg = args[i];
+    if (arg === '--yes' || arg === '-y') { cli.yes = true; continue; }
+    if (arg === '--remove-config')    { cli.removeConfig = true; continue; }
+    if (arg === '--no-remove-config') { cli.removeConfig = false; continue; }
+    if (arg === '--remove-sessions')    { cli.removeSessions = true; continue; }
+    if (arg === '--no-remove-sessions') { cli.removeSessions = false; continue; }
+    if (arg === '--remove-logs')    { cli.removeLogs = true; continue; }
+    if (arg === '--no-remove-logs') { cli.removeLogs = false; continue; }
+    if (arg === '--remove-env')    { cli.removeEnv = true; continue; }
+    if (arg === '--no-remove-env') { cli.removeEnv = false; continue; }
+    if (arg === '--remove-aliases')    { cli.removeAliases = true; continue; }
+    if (arg === '--no-remove-aliases') { cli.removeAliases = false; continue; }
+    if (arg === '--remove-reasonix')    { cli.removeReasonix = true; continue; }
+    if (arg === '--no-remove-reasonix') { cli.removeReasonix = false; continue; }
+    if (arg === '--remove-pm2')    { cli.removePm2 = true; continue; }
+    if (arg === '--no-remove-pm2') { cli.removePm2 = false; continue; }
+    if (arg === '--force-remove-dir')    { cli.forceRemoveDir = true; continue; }
+    if (arg === '--no-force-remove-dir') { cli.forceRemoveDir = false; continue; }
+
+    if (arg.startsWith('--')) { console.warn(`  ${yellow('⚠')} 未知参数: ${arg}`); }
+  }
+  return cli;
+}
+
 function detectShellConfig() {
   const shell = (process.env.SHELL || '').toLowerCase();
   const zdotdir = process.env.ZDOTDIR || HOME;
@@ -91,15 +120,20 @@ function listDir(dir) {
 }
 
 async function main() {
-  console.clear();
-  console.log(`\n${red('  ╭──────────────────────────────────────────────╮')}`);
-  console.log(`${red('  │')}                                              ${red('│')}`);
-  console.log(`${red('  │')}   🗑️   Reasonix 飞书 Bot — 卸载向导          ${red('│')}`);
-  console.log(`${red('  │')}                                              ${red('│')}`);
-  console.log(`${red('  │')}   将还原 deploy 所做的修改                    ${red('│')}`);
-  console.log(`${red('  │')}                                              ${red('│')}`);
-  console.log(`${red('  ╰──────────────────────────────────────────────╯')}`);
-  console.log();
+  const cli = parseArgs();
+  const isQuiet = cli.yes;
+
+  if (!isQuiet) {
+    console.clear();
+    console.log(`\n${red('  ╭──────────────────────────────────────────────╮')}`);
+    console.log(`${red('  │')}                                              ${red('│')}`);
+    console.log(`${red('  │')}   🗑️   Reasonix 飞书 Bot — 卸载向导          ${red('│')}`);
+    console.log(`${red('  │')}                                              ${red('│')}`);
+    console.log(`${red('  │')}   将还原 deploy 所做的修改                    ${red('│')}`);
+    console.log(`${red('  │')}                                              ${red('│')}`);
+    console.log(`${red('  ╰──────────────────────────────────────────────╯')}`);
+    console.log();
+  }
 
   const onCancel = () => {
     console.log(`\n  ${yellow('⚠')} 卸载已取消`);
@@ -148,16 +182,18 @@ async function main() {
   }
 
   // ─── 确认卸载 ───
-  const { confirmed } = await prompts({
-    type: 'confirm',
-    name: 'confirmed',
-    message: '确认开始卸载？',
-    initial: false,
-  }, { onCancel });
+  if (!isQuiet) {
+    const { confirmed } = await prompts({
+      type: 'confirm',
+      name: 'confirmed',
+      message: '确认开始卸载？',
+      initial: false,
+    }, { onCancel });
 
-  if (!confirmed) {
-    console.log(`\n  ${yellow('⚠')} 卸载已取消`);
-    process.exit(0);
+    if (!confirmed) {
+      console.log(`\n  ${yellow('⚠')} 卸载已取消`);
+      process.exit(0);
+    }
   }
 
   // ─── 1. 停掉 PM2 进程 ───
@@ -185,21 +221,25 @@ async function main() {
     'pm2-stop-bot.sh',
   ];
 
-  const { removeConfig } = await prompts({
-    type: 'confirm',
-    name: 'removeConfig',
-    message: '是否删除 ~/.config/reasonix-bot/ 下的配置文件？',
-    hint: 'reasonix.toml / ecosystem.config.js / 启动脚本 等',
-    initial: true,
-  }, { onCancel });
+  let removeConfig;
+  if (cli.removeConfig !== undefined) {
+    removeConfig = cli.removeConfig;
+  } else if (!isQuiet) {
+    const r = await prompts({ type: 'confirm', name: 'v', message: '是否删除 ~/.config/reasonix-bot/ 下的配置文件？', hint: 'reasonix.toml / ecosystem.config.js / 启动脚本 等', initial: true }, { onCancel });
+    removeConfig = r.v;
+  } else {
+    removeConfig = true;
+  }
 
-  const { removeSessions } = await prompts({
-    type: 'confirm',
-    name: 'removeSessions',
-    message: '是否删除会话记录和记忆数据？（聊天历史将丢失）',
-    hint: 'sessions/ / memory/ 等',
-    initial: false,
-  }, { onCancel });
+  let removeSessions;
+  if (cli.removeSessions !== undefined) {
+    removeSessions = cli.removeSessions;
+  } else if (!isQuiet) {
+    const r = await prompts({ type: 'confirm', name: 'v', message: '是否删除会话记录和记忆数据？（聊天历史将丢失）', hint: 'sessions/ / memory/ 等', initial: false }, { onCancel });
+    removeSessions = r.v;
+  } else {
+    removeSessions = false;
+  }
 
   if (removeConfig && existsSync(CONFIG_DIR)) {
     for (const file of configFiles) {
@@ -213,13 +253,15 @@ async function main() {
 
   // PM2 日志
   if (hasPm2Logs) {
-    const { removePm2Logs } = await prompts({
-      type: 'confirm',
-      name: 'removePm2Logs',
-      message: '是否删除 PM2 日志文件？',
-      hint: '~/.pm2/logs/reasonix-bot-*.log',
-      initial: true,
-    }, { onCancel });
+    let removePm2Logs;
+    if (cli.removeLogs !== undefined) {
+      removePm2Logs = cli.removeLogs;
+    } else if (!isQuiet) {
+      const r = await prompts({ type: 'confirm', name: 'v', message: '是否删除 PM2 日志文件？', hint: '~/.pm2/logs/reasonix-bot-*.log', initial: true }, { onCancel });
+      removePm2Logs = r.v;
+    } else {
+      removePm2Logs = true;
+    }
     if (removePm2Logs) {
       for (const f of ['reasonix-bot-out.log', 'reasonix-bot-error.log', 'reasonix-bot.log']) {
         const fp = `${PM2_LOG_DIR}/${f}`;
@@ -260,13 +302,15 @@ async function main() {
 
   const envFile = `${CONFIG_DIR}/.env`;
   if (existsSync(envFile)) {
-    const { removeEnv } = await prompts({
-      type: 'confirm',
-      name: 'removeEnv',
-      message: '是否删除 ~/.config/reasonix-bot/.env（API 密钥文件）？',
-      hint: '注意: 删除后需重新录入',
-      initial: false,
-    }, { onCancel });
+    let removeEnv;
+    if (cli.removeEnv !== undefined) {
+      removeEnv = cli.removeEnv;
+    } else if (!isQuiet) {
+      const r = await prompts({ type: 'confirm', name: 'v', message: '是否删除 ~/.config/reasonix-bot/.env（API 密钥文件）？', hint: '注意: 删除后需重新录入', initial: false }, { onCancel });
+      removeEnv = r.v;
+    } else {
+      removeEnv = false;
+    }
     if (removeEnv) {
       unlinkSync(envFile);
       console.log(`  ${green('✓')} 已删除: .env`);
@@ -281,12 +325,15 @@ async function main() {
   title('5/6 — Shell 别名');
 
   if (hasAliases) {
-    const { removeAliases } = await prompts({
-      type: 'confirm',
-      name: 'removeAliases',
-      message: `是否移除 rb-* 别名？（从 ${aliasFile.replace(HOME, '~')} 中删除）`,
-      initial: true,
-    }, { onCancel });
+    let removeAliases;
+    if (cli.removeAliases !== undefined) {
+      removeAliases = cli.removeAliases;
+    } else if (!isQuiet) {
+      const r = await prompts({ type: 'confirm', name: 'v', message: `是否移除 rb-* 别名？（从 ${aliasFile.replace(HOME, '~')} 中删除）`, initial: true }, { onCancel });
+      removeAliases = r.v;
+    } else {
+      removeAliases = true;
+    }
 
     if (removeAliases && aliasFile) {
       try {
@@ -320,19 +367,27 @@ async function main() {
   } catch {}
 
   if (cliActions.length > 0) {
-    const { removeCLI } = await prompts({
-      type: 'multiselect',
-      name: 'removeCLI',
-      message: '选择要卸载的全局 CLI（空格选择，回车确认）：',
-      hint: '不选则保留',
-      choices: cliActions.map(name => ({
-        title: name === 'reasonix' ? 'reasonix CLI' : 'PM2 进程守护',
-        value: name,
-        selected: false,
-      })),
-    }, { onCancel });
+    let removeReasonix, removePm2;
+    if (cli.yes) {
+      removeReasonix = cli.removeReasonix === true;
+      removePm2 = cli.removePm2 === true;
+    } else {
+      const { removeCLI } = await prompts({
+        type: 'multiselect',
+        name: 'removeCLI',
+        message: '选择要卸载的全局 CLI（空格选择，回车确认）：',
+        hint: '不选则保留',
+        choices: cliActions.map(name => ({
+          title: name === 'reasonix' ? 'reasonix CLI' : 'PM2 进程守护',
+          value: name,
+          selected: false,
+        })),
+      }, { onCancel });
+      removeReasonix = removeCLI.includes('reasonix');
+      removePm2 = removeCLI.includes('pm2');
+    }
 
-    if (removeCLI.includes('reasonix')) {
+    if (removeReasonix) {
       try {
         execSync('npm uninstall -g reasonix', { stdio: 'inherit' });
         console.log(`  ${green('✓')} reasonix 已卸载`);
@@ -343,7 +398,7 @@ async function main() {
       console.log(`  ${dim('─')} 保留 reasonix`);
     }
 
-    if (removeCLI.includes('pm2')) {
+    if (removePm2) {
       try {
         execSync('npm uninstall -g pm2', { stdio: 'inherit' });
         console.log(`  ${green('✓')} PM2 已卸载`);
@@ -367,12 +422,15 @@ async function main() {
       } catch {}
     } else {
       console.log(`\n  ${dim('剩余文件:')} ${remaining.join(', ')}`);
-      const { removeDir } = await prompts({
-        type: 'confirm',
-        name: 'removeDir',
-        message: `~/.config/reasonix-bot/ 还有 ${remaining.length} 个文件，是否强制删除整个目录？`,
-        initial: false,
-      });
+      let removeDir;
+      if (cli.forceRemoveDir !== undefined) {
+        removeDir = cli.forceRemoveDir;
+      } else if (!isQuiet) {
+        const r = await prompts({ type: 'confirm', name: 'v', message: `~/.config/reasonix-bot/ 还有 ${remaining.length} 个文件，是否强制删除整个目录？`, initial: false });
+        removeDir = r.v;
+      } else {
+        removeDir = false;
+      }
       if (removeDir) {
         try {
           rmSync(CONFIG_DIR, { recursive: true, force: true });

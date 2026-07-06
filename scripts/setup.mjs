@@ -215,17 +215,17 @@ async function confirmConfig(config, cli = {}) {
   console.log(`  ${cyan('DeepSeek Key')}   ${config.deepseekKey ? dim('(已保存)') : red('(未设置)')}`);
   console.log();
 
+  if (cli.yes) {
+    console.log(`  ${green('✓')} 自动确认`);
+    return;
+  }
+
   const { confirmed } = await prompts({
     type: 'confirm',
     name: 'confirmed',
     message: '确认以上配置并开始安装？',
     initial: true,
   });
-
-  if (cli.yes) {
-    console.log(`  ${green('✓')} 自动确认`);
-    return;
-  }
 
   if (!confirmed) {
     console.log(`\n  ${yellow('⚠')} 安装已取消`);
