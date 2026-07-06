@@ -1,5 +1,14 @@
 # Changelog
 
+All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
+
+## [0.1.3](https://github.com/u1in/reasonix-feishu-deploy/compare/v0.1.2...v0.1.3) (2026-07-06)
+
+
+### 📝 文档
+
+* 在 README 中新增发布新版本指引，更新 release 脚本为完整自动化链 ([30f4a6c](https://github.com/u1in/reasonix-feishu-deploy/commit/30f4a6cd52cdea4f8326e23a6dcf82b12ae261fd))
+
 ## [0.1.1] — 2026-07-06
 
 ### Fixed
