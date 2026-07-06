@@ -173,6 +173,11 @@ async function main() {
   // ─── 2. 配置文件 ───
   title('2/6 — 配置文件');
 
+  const PM2_LOG_DIR = `${HOME}/.pm2/logs`;
+  const hasPm2Logs = existsSync(PM2_LOG_DIR) &&
+    ['reasonix-bot-out.log', 'reasonix-bot-error.log', 'reasonix-bot.log']
+      .some(f => existsSync(`${PM2_LOG_DIR}/${f}`));
+
   const configFiles = [
     'reasonix.toml',
     'ecosystem.config.js',
@@ -204,6 +209,27 @@ async function main() {
     console.log(`  ${dim('─')} 配置文件已清理`);
   } else {
     console.log(`  ${dim('─')} 保留配置文件`);
+  }
+
+  // PM2 日志
+  if (hasPm2Logs) {
+    const { removePm2Logs } = await prompts({
+      type: 'confirm',
+      name: 'removePm2Logs',
+      message: '是否删除 PM2 日志文件？',
+      hint: '~/.pm2/logs/reasonix-bot-*.log',
+      initial: true,
+    }, { onCancel });
+    if (removePm2Logs) {
+      for (const f of ['reasonix-bot-out.log', 'reasonix-bot-error.log', 'reasonix-bot.log']) {
+        const fp = `${PM2_LOG_DIR}/${f}`;
+        try { unlinkSync(fp); console.log(`  ${green('✓')} 已删除: ~/.pm2/logs/${f}`); } catch { /* 不存在 */ }
+      }
+    } else {
+      console.log(`  ${dim('─')} 保留 PM2 日志`);
+    }
+  } else {
+    console.log(`  ${dim('─')} 未发现 PM2 日志，跳过`);
   }
 
   // ─── 3. 会话和记忆数据 ───

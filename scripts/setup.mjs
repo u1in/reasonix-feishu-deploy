@@ -282,7 +282,9 @@ async function generateConfig(config, cli = {}) {
   writeFileSync(CONFIG_FILE, configContent, 'utf-8');
   console.log(`  ${green('✓')} 配置文件已生成: ~/.config/reasonix-bot/reasonix.toml`);
 
-  // ── 通过 --dir 让 reasonix 读取 bot 配置（不修改用户 ~/.reasonix/config.toml） ──
+  // ── 将 PM2 进程的 cwd 设为 CONFIG_DIR，使 reasonix 的 config.Load()
+  // ── (LoadForRoot(".")) 能加载 ~/.config/reasonix-bot/reasonix.toml
+  // ── 作为项目级配置，从而 [bot] enabled = true 覆盖用户级配置中的 false ──
 
   // PM2 ecosystem
   const ecosystemFile = `${CONFIG_DIR}/ecosystem.config.js`;
@@ -293,7 +295,7 @@ async function generateConfig(config, cli = {}) {
     name: 'reasonix-bot',
     script: '${REASONIX_BIN}',
     args: 'bot start --channels feishu --dir ${CONFIG_DIR}',
-    cwd: process.env.HOME,
+    cwd: '${CONFIG_DIR}',
     interpreter: 'none',
     autorestart: true,
     max_restarts: 10,
