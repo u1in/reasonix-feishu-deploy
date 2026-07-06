@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [0.1.6](https://github.com/u1in/reasonix-feishu-deploy/compare/v0.1.5...v0.1.6) (2026-07-06)
+
+
+### 🐛 修复
+
+* pm2-start-bot.sh 启动前加载 .env 文件使 API 密钥生效 ([281a3db](https://github.com/u1in/reasonix-feishu-deploy/commit/281a3db38f1c0ab367a208bb1a37fe2331b6d58d))
+
+
+### 📝 文档
+
+* 将常用命令提到快速开始板块，去重并精简章节结构 ([edb9037](https://github.com/u1in/reasonix-feishu-deploy/commit/edb9037705a4f3609c203e5a2d9a60234134f0ff))
+
 ## [0.1.5](https://github.com/u1in/reasonix-feishu-deploy/compare/v0.1.4...v0.1.5) (2026-07-06)
 
 
