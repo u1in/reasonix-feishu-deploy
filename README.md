@@ -1,22 +1,28 @@
-# reasonix-feishu-deploy — 一键部署套件
+# @u1in/reasonix-feishu-deploy — 一键部署套件
 
 🤖 在任何 Linux 机器上 **一键部署** Reasonix AI Bot，接入飞书即时通讯。
 
 ## 快速开始
 
-### 方式一：本地运行（克隆仓库后）
+### 方式一：npx 一键安装（推荐）
+
+```bash
+npx @u1in/reasonix-feishu-deploy
+```
+
+### 方式二：本地运行（克隆仓库后）
 
 ```bash
 bash scripts/install.sh
 ```
 
-### 方式二：远程一键安装（无需克隆仓库）
+### 方式三：远程 curl 安装（无需克隆仓库）
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/u1in/reasonix-feishu-deploy/main/scripts/install.sh | bash
 ```
 
-### 方式三：国内加速安装（ghproxy 代理）
+### 方式四：国内加速安装（ghproxy 代理）
 
 ```bash
 curl -fsSL https://ghproxy.net/https://raw.githubusercontent.com/u1in/reasonix-feishu-deploy/main/scripts/install.sh | bash
