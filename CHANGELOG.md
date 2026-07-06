@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [0.3.1](https://github.com/u1in/reasonix-feishu-deploy/compare/v0.3.0...v0.3.1) (2026-07-06)
+
+
+### 🐛 修复
+
+* pre-create $REASONIX_HOME/config.toml with [bot] enabled = true to prevent reasonix auto-creating disabled bot config ([b1349b8](https://github.com/u1in/reasonix-feishu-deploy/commit/b1349b80c3b248f69068d60ea0b4faffea286528))
+
 ## [0.3.0](https://github.com/u1in/reasonix-feishu-deploy/compare/v0.2.1...v0.3.0) (2026-07-06)
 
 
