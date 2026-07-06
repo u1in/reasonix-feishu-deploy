@@ -30,5 +30,5 @@ else
 fi
 
 echo ""
-info "如需重新启动: ${HOME}/.config/vercel-ai-tools/pm2-start-bot.sh"
+info "如需重新启动: ${HOME}/.config/reasonix-bot/pm2-start-bot.sh"
 echo ""

@@ -2,9 +2,9 @@
 set -euo pipefail
 
 # Reasonix 飞书 Bot — PM2 启动脚本
-# 可放在任何位置运行，自动定位 ~/.config/vercel-ai-tools/ecosystem.config.js
+# 可放在任何位置运行，自动定位 ~/.config/reasonix-bot/ecosystem.config.js
 
-CONFIG_DIR="$HOME/.config/vercel-ai-tools"
+CONFIG_DIR="$HOME/.config/reasonix-bot"
 ECOSYSTEM="$CONFIG_DIR/ecosystem.config.js"
 
 # ── 颜色 ──
@@ -34,7 +34,7 @@ if pm2 info reasonix-bot &>/dev/null; then
     warn "reasonix-bot 已在 PM2 中运行"
     echo -e "  ${YELLOW}▶ 重启:    pm2 restart reasonix-bot${NC}"
     echo -e "  ${YELLOW}▶ 查看日志: pm2 logs reasonix-bot${NC}"
-    echo -e "  ${YELLOW}▶ 停止:    ${HOME}/.config/vercel-ai-tools/pm2-stop-bot.sh${NC}"
+    echo -e "  ${YELLOW}▶ 停止:    ${HOME}/.config/reasonix-bot/pm2-stop-bot.sh${NC}"
     exit 0
 fi
 
@@ -55,5 +55,5 @@ echo "  pm2 status                    # 查看所有进程状态"
 echo "  pm2 logs reasonix-bot         # 查看实时日志"
 echo "  pm2 stop reasonix-bot          # 停止机器人"
 echo "  pm2 restart reasonix-bot       # 重启机器人"
-echo "  ${HOME}/.config/vercel-ai-tools/pm2-stop-bot.sh  # 停止机器人（含清理）"
+echo "  ${HOME}/.config/reasonix-bot/pm2-stop-bot.sh  # 停止机器人（含清理）"
 echo ""

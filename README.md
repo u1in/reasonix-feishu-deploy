@@ -22,7 +22,7 @@ curl -fsSL https://raw.githubusercontent.com/u1in/reasonix-feishu-deploy/main/sc
 curl -fsSL https://ghproxy.net/https://raw.githubusercontent.com/u1in/reasonix-feishu-deploy/main/scripts/install.sh | bash
 ```
 
-安装过程中会提示输入以下密钥（也可安装后修改 `~/.config/vercel-ai-tools/.env`）：
+安装过程中会提示输入以下密钥（也可安装后修改 `~/.config/reasonix-bot/.env`）：
 
 | 密钥 | 必填 | 说明 |
 |------|------|------|
@@ -56,7 +56,7 @@ reasonix-feishu-deploy/
 |------|------|
 | 1. 检查/安装 Node.js | 如果未安装则通过 nvm 安装 Node 22 LTS |
 | 2. 安装 reasonix CLI | `npm i -g reasonix@next` |
-| 3. 配置 reasonix | 生成 `~/.config/vercel-ai-tools/config.toml` + 交互式录入 API 密钥 |
+| 3. 配置 reasonix | 生成 `~/.config/reasonix-bot/config.toml` + 交互式录入 API 密钥 |
 | 4. 配置 PM2 守护进程 | 安装 PM2、生成 ecosystem 配置、可选开机自启 |
 | 5. 启动 Bot | 通过 PM2 启动 reasonix-bot |
 
@@ -64,10 +64,10 @@ reasonix-feishu-deploy/
 
 ## 安装后的目录结构
 
-安装后，所有运行时配置和脚本位于 `~/.config/vercel-ai-tools/`：
+安装后，所有运行时配置和脚本位于 `~/.config/reasonix-bot/`：
 
 ```
-~/.config/vercel-ai-tools/
+~/.config/reasonix-bot/
 ├── .env                  # API 密钥（已生成）
 ├── config.toml           # Reasonix 配置（已生成）
 ├── ecosystem.config.js   # PM2 进程配置
@@ -98,15 +98,15 @@ pm2 delete reasonix-bot     # 删除进程
 ### 通过安装脚本
 
 ```bash
-~/.config/vercel-ai-tools/pm2-start-bot.sh    # 启动
-~/.config/vercel-ai-tools/pm2-stop-bot.sh     # 停止
+~/.config/reasonix-bot/pm2-start-bot.sh    # 启动
+~/.config/reasonix-bot/pm2-stop-bot.sh     # 停止
 ```
 
 ### 修改配置
 
 ```bash
-vim ~/.config/vercel-ai-tools/config.toml     # 修改 Reasonix 配置
-vim ~/.config/vercel-ai-tools/.env            # 修改 API 密钥
+vim ~/.config/reasonix-bot/config.toml     # 修改 Reasonix 配置
+vim ~/.config/reasonix-bot/.env            # 修改 API 密钥
 ```
 
 修改后重启 Bot 生效：
@@ -125,7 +125,7 @@ node scripts/uninstall.mjs
 npm run uninstall
 ```
 
-卸载脚本会清理：PM2 进程、`~/.config/vercel-ai-tools/` 目录、可选的 reasonix CLI 和 PM2 全局包。
+卸载脚本会清理：PM2 进程、`~/.config/reasonix-bot/` 目录、可选的 reasonix CLI 和 PM2 全局包。
 
 ## 前提条件
 

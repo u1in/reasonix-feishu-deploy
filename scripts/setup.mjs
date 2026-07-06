@@ -15,7 +15,7 @@ import { execSync } from 'child_process';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const HOME = homedir();
-const CONFIG_DIR = `${HOME}/.config/vercel-ai-tools`;
+const CONFIG_DIR = `${HOME}/.config/reasonix-bot`;
 const CONFIG_FILE = `${CONFIG_DIR}/config.toml`;
 const ENV_FILE = `${CONFIG_DIR}/.env`;
 const TEMPLATE_FILE = resolve(__dirname, '../config/reasonix.toml');
@@ -259,7 +259,7 @@ async function generateConfig(config) {
     const { overwrite } = await prompts({
       type: 'confirm',
       name: 'overwrite',
-      message: `~/.config/vercel-ai-tools/config.toml 已存在，是否覆盖？`,
+      message: `~/.config/reasonix-bot/config.toml 已存在，是否覆盖？`,
       initial: false,
     });
     if (!overwrite) {
@@ -294,7 +294,7 @@ async function generateConfig(config) {
   configContent = configContent.replace(/^(\[bot\.weixin\]\n?)enabled = true/m, `$1enabled = false`);
 
   writeFileSync(CONFIG_FILE, configContent, 'utf-8');
-  console.log(`  ${green('✓')} 配置文件已生成: ~/.config/vercel-ai-tools/config.toml`);
+  console.log(`  ${green('✓')} 配置文件已生成: ~/.config/reasonix-bot/config.toml`);
 
   // PM2 ecosystem
   const ecosystemFile = `${CONFIG_DIR}/ecosystem.config.js`;
@@ -315,7 +315,7 @@ async function generateConfig(config) {
 };
 `;
     writeFileSync(ecosystemFile, ecosystem, 'utf-8');
-    console.log(`  ${green('✓')} PM2 配置已生成: ~/.config/vercel-ai-tools/ecosystem.config.js`);
+    console.log(`  ${green('✓')} PM2 配置已生成: ~/.config/reasonix-bot/ecosystem.config.js`);
   } else {
     console.log(`  ${green('✓')} PM2 配置已存在，跳过`);
   }
@@ -380,7 +380,7 @@ function printSummary() {
   console.log(`${green('  │')}                                              ${green('│')}`);
   console.log(`${green('  ╰──────────────────────────────────────────────╯')}`);
   console.log();
-  console.log(`  ${cyan('📁')}  ~/.config/vercel-ai-tools/`);
+  console.log(`  ${cyan('📁')}  ~/.config/reasonix-bot/`);
   console.log(`     ${dim('├──')} config.toml          配置文件`);
   console.log(`     ${dim('├──')} .env                 API 密钥`);
   console.log(`     ${dim('├──')} ecosystem.config.js   PM2 配置`);

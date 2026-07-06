@@ -12,7 +12,7 @@ import { homedir } from 'os';
 import { execSync } from 'child_process';
 
 const HOME = homedir();
-const CONFIG_DIR = `${HOME}/.config/vercel-ai-tools`;
+const CONFIG_DIR = `${HOME}/.config/reasonix-bot`;
 
 function color(s, c) { return `\x1b[${c}m${s}\x1b[0m`; }
 const green  = s => color(s, 32);
@@ -60,7 +60,7 @@ async function main() {
       console.log(`  ${cyan('•')} PM2 进程 reasonix-bot: ${green('存在')}`);
     }
   } catch {}
-  console.log(`  ${cyan('•')} ~/.config/vercel-ai-tools/ 目录: ${existsSync(CONFIG_DIR) ? green('存在') : dim('不存在')}`);
+  console.log(`  ${cyan('•')} ~/.config/reasonix-bot/ 目录: ${existsSync(CONFIG_DIR) ? green('存在') : dim('不存在')}`);
   if (existsSync(CONFIG_DIR)) {
     const files = listDir(CONFIG_DIR);
     files.forEach(f => console.log(`    ${dim('└──')} ${f}`));
@@ -121,7 +121,7 @@ async function main() {
   const { removeConfig } = await prompts({
     type: 'confirm',
     name: 'removeConfig',
-    message: '是否删除 ~/.config/vercel-ai-tools/ 下的配置文件？',
+    message: '是否删除 ~/.config/reasonix-bot/ 下的配置文件？',
     hint: 'config.toml / ecosystem.config.js / 启动脚本 等',
     initial: true,
   }, { onCancel });
@@ -174,7 +174,7 @@ async function main() {
     const { removeEnv } = await prompts({
       type: 'confirm',
       name: 'removeEnv',
-      message: '是否删除 ~/.config/vercel-ai-tools/.env（API 密钥文件）？',
+      message: '是否删除 ~/.config/reasonix-bot/.env（API 密钥文件）？',
       hint: '注意: 删除后需重新录入',
       initial: false,
     }, { onCancel });
@@ -247,20 +247,20 @@ async function main() {
     if (remaining.length === 0) {
       try {
         rmSync(CONFIG_DIR, { recursive: true, force: true });
-        console.log(`  ${green('✓')} 已删除空目录: ~/.config/vercel-ai-tools/`);
+        console.log(`  ${green('✓')} 已删除空目录: ~/.config/reasonix-bot/`);
       } catch {}
     } else {
       console.log(`\n  ${dim('剩余文件:')} ${remaining.join(', ')}`);
       const { removeDir } = await prompts({
         type: 'confirm',
         name: 'removeDir',
-        message: `~/.config/vercel-ai-tools/ 还有 ${remaining.length} 个文件，是否强制删除整个目录？`,
+        message: `~/.config/reasonix-bot/ 还有 ${remaining.length} 个文件，是否强制删除整个目录？`,
         initial: false,
       });
       if (removeDir) {
         try {
           rmSync(CONFIG_DIR, { recursive: true, force: true });
-          console.log(`  ${green('✓')} 已强制删除: ~/.config/vercel-ai-tools/`);
+          console.log(`  ${green('✓')} 已强制删除: ~/.config/reasonix-bot/`);
         } catch (e) {
           console.log(`  ${red('✗')} 删除失败: ${e.message}`);
         }
