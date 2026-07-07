@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [0.4.9](https://github.com/u1in/reasonix-feishu-deploy/compare/v0.4.8...v0.4.9) (2026-07-07)
+
+
+### 🐛 修复
+
+* correct config merge logic for [[providers]] array tables and key-level merge ([c35a685](https://github.com/u1in/reasonix-feishu-deploy/commit/c35a685da71a135f3343e6b8143c45d312e1d09f))
+
+
+### 🔧 杂项
+
+* rename provider from deepseek-flash to deepseek ([0228169](https://github.com/u1in/reasonix-feishu-deploy/commit/022816926388d2aacd5e9fdd7e356a3339b78f0b))
+
 ## [0.4.8](https://github.com/u1in/reasonix-feishu-deploy/compare/v0.4.7...v0.4.8) (2026-07-06)
 
 
