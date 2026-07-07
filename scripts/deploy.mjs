@@ -191,74 +191,101 @@ function mergeWithUserConfig(templateText) {
   writeFileSync(userConfigBakPath, userText, 'utf-8');
   console.log(`  ${green('✓')} 已备份: ~/.reasonix/config.toml → ~/.reasonix/config.toml.deploy-bak`);
 
-  // 按节(section)拆分 TOML 文本
+  // 按节(section)拆分 TOML 文本，识别数组表 ([[...]]) 并提取 name 字段
   function splitSections(text) {
     const blocks = [];
     const lines = text.split('\n');
     let i = 0;
     // 前导内容（第一个 [section] 之前的顶层键）
     while (i < lines.length && !lines[i].startsWith('[')) i++;
-    if (i > 0) blocks.push({ key: '__preamble__', content: lines.slice(0, i).join('\n') });
+    if (i > 0) blocks.push({ key: '__preamble__', content: lines.slice(0, i).join('\n'), isArray: false, name: '' });
     // 各节
     while (i < lines.length) {
       const header = lines[i];
+      const isArray = header.startsWith('[[');
       i++;
       const contentLines = [];
       while (i < lines.length && !lines[i].startsWith('[')) {
         contentLines.push(lines[i]);
         i++;
       }
-      blocks.push({ key: header, content: contentLines.join('\n') });
+      const content = contentLines.join('\n');
+      let name = '';
+      if (isArray) {
+        const m = content.match(/^\s*name\s*=\s*"([^"]+)"/m);
+        if (m) name = m[1];
+      }
+      blocks.push({ key: header, content, isArray, name });
     }
     return blocks;
+  }
+
+  // 逐 key 合并：模板为基准，用户覆盖同名 key，用户独有 key 追加
+  function mergeKeyValue(templateContent, userContent) {
+    function extractKV(text) {
+      const kv = {};
+      for (const line of text.split('\n')) {
+        const m = line.match(/^(\w[\w._]*)\s*=/);
+        if (m) kv[m[1]] = line;
+      }
+      return kv;
+    }
+    const userKV = extractKV(userContent);
+    const templateKV = extractKV(templateContent);
+    // 遍历模板行，有用户覆盖则替换
+    const merged = templateContent.split('\n').map(line => {
+      const m = line.match(/^(\w[\w._]*)\s*=/);
+      return (m && userKV[m[1]]) ? userKV[m[1]] : line;
+    });
+    // 追加用户独有的 key（模板中不存在的）
+    for (const line of userContent.split('\n')) {
+      const m = line.match(/^(\w[\w._]*)\s*=/);
+      if (m && !templateKV[m[1]]) {
+        merged.push(line);
+      }
+    }
+    return merged.join('\n');
   }
 
   const isBot = k => k === '[bot]' || k.startsWith('[bot.');
   const tBlocks = splitSections(templateText);
   const uBlocks = splitSections(userText);
 
-  const userBlockMap = new Map(uBlocks.filter(b => b.key !== '__preamble__').map(b => [b.key, b]));
-  const tNonBotBlocks = tBlocks.filter(b => b.key !== '__preamble__' && !isBot(b.key));
-  const tBotBlocks = tBlocks.filter(b => b.key !== '__preamble__' && isBot(b.key));
   const result = [];
 
-  // 1. 顶层键：以模板为基础，用用户的值覆盖同名键
+  // 1. 顶层键：模板为基准，用户覆盖同名 key，用户独有 key 追加
   const tPreamble = tBlocks.find(b => b.key === '__preamble__');
   const uPreamble = uBlocks.find(b => b.key === '__preamble__');
   if (tPreamble) {
-    const userKV = {};
-    if (uPreamble) {
-      for (const line of uPreamble.content.split('\n')) {
-        const m = line.match(/^(\w[\w._]*)\s*=/);
-        if (m) userKV[m[1]] = line;
-      }
-    }
-    const merged = tPreamble.content.split('\n').map(line => {
-      const m = line.match(/^(\w[\w._]*)\s*=/);
-      return (m && userKV[m[1]]) ? userKV[m[1]] : line;
-    });
-    result.push(merged.join('\n'));
+    result.push(uPreamble ? mergeKeyValue(tPreamble.content, uPreamble.content) : tPreamble.content);
   }
 
-  // 2. 非 Bot 节：优先用用户的
-  for (const block of tNonBotBlocks) {
-    const ub = userBlockMap.get(block.key);
-    if (ub) {
-      result.push(block.key + '\n' + ub.content);
-    } else {
+  // 2. 按模板顺序处理所有节（保持输出顺序）
+  for (const block of tBlocks) {
+    if (block.key === '__preamble__') continue;
+
+    if (block.isArray) {
+      // 数组表 ([[providers]]、[[plugins]])：按 name 字段匹配
+      const ub = uBlocks.find(b => b.isArray && b.key === block.key && b.name === block.name);
+      result.push(block.key + '\n' + (ub ? mergeKeyValue(block.content, ub.content) : block.content));
+    } else if (isBot(block.key)) {
+      // Bot 节：始终用模板的（后续会做 bot 专用覆写）
       result.push(block.key + '\n' + block.content);
+    } else {
+      // 其他非 Bot 节：逐 key 合并（不整段替换，防止模板新增字段丢失）
+      const ub = uBlocks.find(b => !b.isArray && b.key === block.key);
+      result.push(block.key + '\n' + (ub ? mergeKeyValue(block.content, ub.content) : block.content));
     }
   }
 
-  // 3. Bot 节：始终用模板的（后续会做 bot 专用覆写）
-  for (const block of tBotBlocks) {
-    result.push(block.key + '\n' + block.content);
-  }
-
-  // 4. 用户独有的节（模板没有的）追加到末尾
+  // 3. 用户独有的节（模板不存在的）追加到末尾
+  const tIndex = new Set(tBlocks.filter(b => b.key !== '__preamble__').map(b => {
+    return b.isArray ? `${b.key}::${b.name}` : b.key;
+  }));
   for (const block of uBlocks) {
     if (block.key === '__preamble__') continue;
-    if (!tBlocks.some(tb => tb.key === block.key)) {
+    const id = block.isArray ? `${block.key}::${block.name}` : block.key;
+    if (!tIndex.has(id)) {
       result.push(block.key + '\n' + block.content);
     }
   }
