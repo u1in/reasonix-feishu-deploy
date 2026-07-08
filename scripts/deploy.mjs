@@ -88,7 +88,7 @@ async function ensureEnvironment() {
 
 // ── 步骤 2: 飞书 App ID ──
 async function collectAppId(cli = {}, config = {}) {
-  stepBanner(2, 10, '飞书 App ID');
+  stepBanner(2, 11, '飞书 App ID');
   console.log(`  ${dim('用方向键 ↑↓ 选择，回车确认，Ctrl+C 随时取消')}\n`);
 
   const onCancel = () => {
@@ -107,7 +107,7 @@ async function collectAppId(cli = {}, config = {}) {
 
 // ── 步骤 3: 飞书 App Secret ──
 async function collectAppSecret(cli = {}, config = {}) {
-  stepBanner(3, 10, '飞书 App Secret');
+  stepBanner(3, 11, '飞书 App Secret');
   console.log(`  ${dim('用方向键 ↑↓ 选择，回车确认，Ctrl+C 随时取消')}\n`);
 
   const onCancel = () => {
@@ -128,7 +128,7 @@ async function collectAppSecret(cli = {}, config = {}) {
 
 // ── 步骤 4: 飞书配置检查 ──
 async function confirmFeishuConfig(_cli = {}, _config = {}) {
-  stepBanner(4, 10, '飞书配置检查');
+  stepBanner(4, 11, '飞书配置检查');
   console.log(`  ${dim('用方向键 ↑↓ 选择，回车确认，Ctrl+C 随时取消')}\n`);
 
   const onCancel = () => {
@@ -141,7 +141,7 @@ async function confirmFeishuConfig(_cli = {}, _config = {}) {
 
 // ── 步骤 5: 安全策略确认 ──
 async function confirmSecurity(_cli = {}, _config = {}) {
-  stepBanner(5, 10, '安全策略确认');
+  stepBanner(5, 11, '安全策略确认');
   console.log(`  ${dim('用方向键 ↑↓ 选择，回车确认，Ctrl+C 随时取消')}\n`);
 
   const onCancel = () => {
@@ -155,7 +155,7 @@ async function confirmSecurity(_cli = {}, _config = {}) {
 
 // ── 步骤 6: DeepSeek API Key ──
 async function collectDeepSeekKey(cli = {}, config = {}) {
-  stepBanner(6, 10, 'DeepSeek API Key');
+  stepBanner(6, 11, 'DeepSeek API Key');
   console.log(`  ${dim('用方向键 ↑↓ 选择，回车确认，Ctrl+C 随时取消')}\n`);
 
   const onCancel = () => {
@@ -171,6 +171,35 @@ async function collectDeepSeekKey(cli = {}, config = {}) {
     console.log(`  ${green('✓')} DeepSeek API Key ${dim('(已配置)')}`);
   }
   config.deepseekKey = deepseekKey;
+}
+
+// ── 步骤 7: 沙箱工作目录 ──
+async function askSandboxScope(_cli = {}, config = {}) {
+  stepBanner(7, 11, 'Bot 文件访问权限');
+  console.log(`  ${dim('用方向键 ↑↓ 选择，回车确认，Ctrl+C 随时取消')}\n`);
+
+  const onCancel = () => {
+    console.log(`\n  ${yellow('⚠')} 向导已取消`);
+    process.exit(0);
+  };
+
+  const r = await prompts({
+    type: 'confirm',
+    name: 'v',
+    message: `Bot 当前工作目录为 ~/.config/reasonix-bot。
+是否将你的用户目录（~/）添加到 Bot 可访问目录？
+
+开启后 Bot 可以读取和写入 HOME 下的文件（如代码、文档等）。
+若关闭，Bot 的工作范围仅限于 ~/.config/reasonix-bot。`,
+    initial: true,
+  }, { onCancel });
+
+  config.expandSandbox = r.v;
+  if (r.v) {
+    console.log(`  ${green('✓')} Bot 可访问目录: ~/`);
+  } else {
+    console.log(`  ${dim('─')} Bot 工作目录保持受限 ~/.config/reasonix-bot`);
+  }
 }
 
 // ── 合并用户级 Reasonix 配置（保留用户非 Bot 设置） ──
@@ -353,6 +382,15 @@ async function generateConfig(config, cli = {}) {
     '$1enabled = true',
   );
 
+  // ── 沙箱工作目录（用户选择开放 HOME 时） ──
+  if (config.expandSandbox) {
+    configContent = configContent.replace(
+      /^# workspace_root = ""/m,
+      `workspace_root = "${HOME}"`
+    );
+    console.log(`  ${green('✓')} 沙箱工作目录已扩展至: ${HOME}`);
+  }
+
   writeFileSync(`${REASONIX_USER_DIR}/config.toml`, configContent, 'utf-8');
   console.log(`  ${green('✓')} 配置已合并并写入: ~/.reasonix/config.toml`);
 
@@ -399,6 +437,26 @@ async function generateConfig(config, cli = {}) {
   } catch (e) {
     console.log(`  ${yellow('⚠')} 卸载脚本复制失败: ${e.message}`);
   }
+
+  // ── 白名单工具脚本（添加目录到沙箱） ──
+  const addwlMjs = `${PACKAGE_SCRIPTS_DIR}/add-wl.mjs`;
+  const addwlMjsDest = `${CONFIG_DIR}/add-wl.mjs`;
+  try {
+    copyFileSync(addwlMjs, addwlMjsDest);
+    console.log(`  ${green('✓')} 白名单脚本已复制: add-wl.mjs`);
+  } catch (e) {
+    console.log(`  ${yellow('⚠')} 白名单脚本复制失败: ${e.message}`);
+  }
+
+  // ── 白名单移除脚本 ──
+  const rmwlMjs = `${PACKAGE_SCRIPTS_DIR}/rm-wl.mjs`;
+  const rmwlMjsDest = `${CONFIG_DIR}/rm-wl.mjs`;
+  try {
+    copyFileSync(rmwlMjs, rmwlMjsDest);
+    console.log(`  ${green('✓')} 白名单移除脚本已复制: rm-wl.mjs`);
+  } catch (e) {
+    console.log(`  ${yellow('⚠')} 白名单移除脚本复制失败: ${e.message}`);
+  }
 }
 
 // ── Shell 别名 ──
@@ -433,6 +491,8 @@ alias rb-restart='pm2 restart reasonix-bot'
 alias rb-logs='pm2 logs reasonix-bot'
 alias rb-status='pm2 status'
 alias rb-undeploy='node ${CONFIG_DIR}/undeploy.mjs'
+alias rb-add-wl='node ${CONFIG_DIR}/add-wl.mjs'
+alias rb-rm-wl='node ${CONFIG_DIR}/rm-wl.mjs'
 ${ALIAS_MARKER_END}
 `;
 }
@@ -531,6 +591,8 @@ function printSummary(hasAliases) {
     console.log(`      rb-logs            ${dim('# 日志')}`);
     console.log(`      rb-restart         ${dim('# 重启')}`);
     console.log(`      rb-stop            ${dim('# 停止')}`);
+    console.log(`      rb-add-wl <目录>   ${dim('# 添加目录到白名单')}`);
+    console.log(`      rb-rm-wl <目录>    ${dim('# 从白名单移除目录')}`);
     console.log(`      rb-undeploy        ${dim('# 卸载')}`);
   } else {
     console.log(`      pm2 status               ${dim('# 状态')}`);
@@ -550,7 +612,7 @@ async function main() {
   const cli = parseArgs();
   const config = {};
 
-  stepBanner(1, 10, '环境准备');
+  stepBanner(1, 11, '环境准备');
   await ensureEnvironment();
 
   await collectAppId(cli, config);
@@ -563,16 +625,18 @@ async function main() {
 
   await collectDeepSeekKey(cli, config);
 
-  stepBanner(7, 10, '配置确认');
+  await askSandboxScope(cli, config);
+
+  stepBanner(8, 11, '配置确认');
   await confirmConfig(config, cli);
 
-  stepBanner(8, 10, '生成配置');
+  stepBanner(9, 11, '生成配置');
   await generateConfig(config, cli);
 
-  stepBanner(9, 10, 'Shell 别名');
+  stepBanner(10, 11, 'Shell 别名');
   const hasAliases = await setupShellAliases(cli);
 
-  stepBanner(10, 10, '部署完成');
+  stepBanner(11, 11, '部署完成');
   printSummary(hasAliases);
 }
 
