@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [0.5.1](https://github.com/u1in/reasonix-feishu-deploy/compare/v0.5.0...v0.5.1) (2026-07-08)
+
+
+### 🚀 新功能
+
+* add sandbox workspace config and rb-add-wl/rb-rm-wl commands ([44c6fc3](https://github.com/u1in/reasonix-feishu-deploy/commit/44c6fc3540da5efb3ff156e9f94b616ebcfaf989))
+
 ## [0.5.0](https://github.com/u1in/reasonix-feishu-deploy/compare/v0.4.9...v0.5.0) (2026-07-07)
 
 
