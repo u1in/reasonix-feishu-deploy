@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [0.5.2](https://github.com/u1in/reasonix-feishu-deploy/compare/v0.5.1...v0.5.2) (2026-07-14)
+
+
+### 📝 文档
+
+* fix Reasonix 官网地址 ([bd323b3](https://github.com/u1in/reasonix-feishu-deploy/commit/bd323b3849ea7814c6bbc2c9277efdbcbb53afbd))
+
 ## [0.5.1](https://github.com/u1in/reasonix-feishu-deploy/compare/v0.5.0...v0.5.1) (2026-07-08)
 
 
