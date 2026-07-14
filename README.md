@@ -133,5 +133,5 @@ npm run release:dry    # 预览
 
 ## 9. 相关链接
 
-- [Reasonix 官网](https://reasonix.ai)
+- [Reasonix 官网](https://reasonix.io/)
 - [飞书开放平台](https://open.feishu.cn/)
